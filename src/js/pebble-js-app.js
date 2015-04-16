@@ -1,8 +1,10 @@
 // Function to send a message to the Pebble using AppMessage API
 function send_weather(weather) {
+  console.out(weather.city);
+  console.out(weather.temperature);
   Pebble.sendAppMessage({
-    "WEATHER_CITY_KEY":weather.city,
-    "WEATHER_TEMPERATURE_KEY":weather.temperature
+    "WEATHER_TEMPERATURE_KEY":weather.temperature,
+    "WEATHER_CITY_KEY":weather.city
     }
   );
 }
@@ -12,7 +14,6 @@ function get_location(){
       var location = {
         latitude:   pos.coords.latitude,
         longitude:  pos.coords.longitude,
-        recent:     true
       };
       get_weather(location);
     },
@@ -20,7 +21,6 @@ function get_location(){
       var location;
       location.latitude  = "null";
       location.longitude = "null";
-      location.recent    = false;
       get_weather(location);
     },
     {
@@ -69,6 +69,7 @@ function get_weather(location){
 // Called when JS is ready
 Pebble.addEventListener("ready",
   function(e) {
+    console.out("ready");
     get_location();
   }
 );
@@ -76,6 +77,7 @@ Pebble.addEventListener("ready",
 // Called when incoming message from the Pebble is received
 Pebble.addEventListener("appmessage",
   function(e) {
+    console.out("message");
     get_location();
   }
 );

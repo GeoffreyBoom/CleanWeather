@@ -9,17 +9,17 @@
         "location"
     ],
     "companyName": "geoffreyboom@gmail.com",
-    "longName": "WeatherNeatC",
+    "longName": "WeatherNeatCC",
     "projectType": "native",
     "resources": {
         "media": []
     },
     "sdkVersion": "2",
-    "shortName": "WeatherNeatC",
-    "uuid": "29266cc0-5241-4fa1-b385-d71320f1117a",
+    "shortName": "WeatherNeatCC",
+    "uuid": "49bbbd34-4014-49e0-9add-5079ad9413e1",
     "versionCode": 1,
     "versionLabel": "1.0",
     "watchapp": {
-        "watchface": true
+        "watchface": false
     }
 }

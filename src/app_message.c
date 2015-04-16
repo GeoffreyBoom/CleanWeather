@@ -1,8 +1,17 @@
 #include <pebble.h>
-#include "WeatherNeat.h"
+#include "weatherneat.h"
 #include "window.h"
 #include "weather.h"
-
+static TextLayer *title_layer;
+static TextLayer *time_layer;
+static TextLayer *month_layer;
+static TextLayer *temperature_layer;
+static TextLayer *weekday_layer;
+static TextLayer *condition_layer;
+static TextLayer *year_layer;
+static TextLayer *location_layer;
+  
+  
 //=======================WEATHER=====================//
 
 static AppSync s_sync;
@@ -11,11 +20,17 @@ static uint8_t s_sync_buffer[32];
 static void request_weather(){
   //dummy code to ask for js to update
   DictionaryIterator *iter;
-  
   app_message_outbox_begin(&iter);
-  
+
+  if (!iter) {
+    // Error creating outbound message
+    return;
+  }
+
+  int value = 1;
+  dict_write_int(iter, 1, &value, sizeof(int), true);
   dict_write_end(iter);
-  
+
   app_message_outbox_send();
   
 }
@@ -25,7 +40,8 @@ static void receive_weather(const uint32_t key, const Tuple *new_tuple, const Tu
       set_text_location((char*)new_tuple->value->cstring);
       break;
     case WEATHER_TEMPERATURE_KEY:
-      set_text_temperature((char*)new_tuple->value->cstring);
+      text_layer_set_text(temperature_layer, new_tuple->value->cstring);
+      //set_text_temperature((char*)new_tuple->value->cstring);
       break;
     case WEATHER_CONDITION_KEY:
       set_text_condition((char*)new_tuple->value->cstring);
@@ -37,22 +53,16 @@ static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app
 }
 
 static void init_weather(){
-  /*
-  WEATHER_REQUEST = 0x0,
-  WEATHER_CITY_KEY = 0x1,
-  WEATHER_TEMPERATURE_KEY = 0x2,
-  WEATHER_CONDITION_KEY = 0x3,
-  WEATHER_TIME_STAMP = 0x4
-  */
-  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+  app_message_open(64, 64);
   Tuplet initial_values[] = {
     TupletInteger(WEATHER_REQUEST_KEY, 1),
-    TupletCString(WEATHER_CITY_KEY, "montreal"),
+    TupletCString(WEATHER_CITY_KEY, "Montreal"),
     TupletCString(WEATHER_TEMPERATURE_KEY, "0°C"),
     TupletCString(WEATHER_CONDITION_KEY, "Windy")
   };
   app_sync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values, 
                 ARRAY_LENGTH(initial_values), receive_weather, sync_error_handler, NULL);
+  request_weather();
 }
 static void set_weather(struct Weather* weather){
   set_text_temperature(weather->temperature);
@@ -68,7 +78,7 @@ static void set_weather(struct Weather* weather){
 static void init(){
   show_window();
   tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
-  request_weather();
+  init_weather();
 }
 static void deinit(){
   hide_window();
@@ -124,14 +134,7 @@ static Window *s_window;
 static GFont s_res_gothic_28_bold;
 static GFont s_res_gothic_24_bold;
 static GFont s_res_gothic_18_bold;
-static TextLayer *title_layer;
-static TextLayer *time_layer;
-static TextLayer *month_layer;
-static TextLayer *temperature_layer;
-static TextLayer *weekday_layer;
-static TextLayer *condition_layer;
-static TextLayer *year_layer;
-static TextLayer *location_layer;
+
 
 static void initialise_ui(void) {
   s_window = window_create();
