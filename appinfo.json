@@ -1,0 +1,24 @@
+{
+    "appKeys": {
+        "WEATHER_CITY_KEY": 0,
+        "WEATHER_CONDITION_KEY": 2,
+        "WEATHER_TEMPERATURE_KEY": 1
+    },
+    "capabilities": [
+        ""
+    ],
+    "companyName": "geoffreyboom@gmail.com",
+    "longName": "WeatherNeatC",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "sdkVersion": "2",
+    "shortName": "WeatherNeatC",
+    "uuid": "29266cc0-5241-4fa1-b385-d71320f1117a",
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": true
+    }
+}
