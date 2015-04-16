@@ -3,24 +3,76 @@
 #include "window.h"
 #include "weather.h"
 
-
-
 //=======================WEATHER=====================//
 
-static void set_weather(struct Weather* weather){
+static AppSync s_sync;
+static uint8_t s_sync_buffer[32];
+
+static void request_weather(){
+  //dummy code to ask for js to update
+  DictionaryIterator *iter;
   
+  app_message_outbox_begin(&iter);
+  
+  dict_write_end(iter);
+  
+  app_message_outbox_send();
+  
+}
+static void receive_weather(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context){
+  switch(key){
+    case WEATHER_CITY_KEY:
+      set_text_location((char*)new_tuple->value->cstring);
+      break;
+    case WEATHER_TEMPERATURE_KEY:
+      set_text_temperature((char*)new_tuple->value->cstring);
+      break;
+    case WEATHER_CONDITION_KEY:
+      set_text_condition((char*)new_tuple->value->cstring);
+      break;
+  }
+}
+static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_message_error, void *context){
+  
+}
+
+static void init_weather(){
+  /*
+  WEATHER_REQUEST = 0x0,
+  WEATHER_CITY_KEY = 0x1,
+  WEATHER_TEMPERATURE_KEY = 0x2,
+  WEATHER_CONDITION_KEY = 0x3,
+  WEATHER_TIME_STAMP = 0x4
+  */
+  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+  Tuplet initial_values[] = {
+    TupletInteger(WEATHER_REQUEST_KEY, 1),
+    TupletCString(WEATHER_CITY_KEY, "montreal"),
+    TupletCString(WEATHER_TEMPERATURE_KEY, "0°C"),
+    TupletCString(WEATHER_CONDITION_KEY, "Windy")
+  };
+  app_sync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values, 
+                ARRAY_LENGTH(initial_values), receive_weather, sync_error_handler, NULL);
+}
+static void set_weather(struct Weather* weather){
+  set_text_temperature(weather->temperature);
+  set_text_condition(weather->condition);
+  set_text_location(weather->location);
 }
 
 //=======================ENDWEATHER=====================//
 
 
 //=======================INIT====================//
+
 static void init(){
   show_window();
   tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
+  request_weather();
 }
 static void deinit(){
   hide_window();
+  app_sync_deinit(&s_sync);
 }
 int main(void){
   init();

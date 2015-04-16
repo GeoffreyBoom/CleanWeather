@@ -1,11 +1,12 @@
 {
     "appKeys": {
-        "WEATHER_CITY_KEY": 0,
-        "WEATHER_CONDITION_KEY": 2,
-        "WEATHER_TEMPERATURE_KEY": 1
+        "WEATHER_CITY_KEY": 1,
+        "WEATHER_CONDITION_KEY": 3,
+        "WEATHER_REQUEST": 0,
+        "WEATHER_TEMPERATURE_KEY": 2
     },
     "capabilities": [
-        ""
+        "location"
     ],
     "companyName": "geoffreyboom@gmail.com",
     "longName": "WeatherNeatC",
