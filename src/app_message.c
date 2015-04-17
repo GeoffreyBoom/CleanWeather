@@ -14,8 +14,7 @@ static TextLayer *weekday_layer;
 static TextLayer *condition_layer;
 static TextLayer *year_layer;
 static TextLayer *location_layer;
-  
-#define KEY_COUNT 5
+
 enum weather_key{
   WEATHER_REQUEST_KEY = 0x0,
   WEATHER_CITY_KEY = 0x1,
@@ -23,6 +22,11 @@ enum weather_key{
   WEATHER_CONDITION_KEY = 0x3,
   WEATHER_TIME_STAMP = 0x4
 };
+
+enum storage_key{
+  WEATHER_DATA_LOCATION = 0
+};
+
 struct Weather{
   char location[32];
   char temperature[9];
@@ -30,11 +34,9 @@ struct Weather{
   int time;
 };
 
-static struct Weather weather = {
-  .location = "Montreal",
-  .temperature = "-273.4°C",
-  .condition = "Raining Men"
-};
+//a static buffer for loading and storing in memory
+//the weather on the persist_storage
+static struct Weather weather_buffer;
 
 static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context);
 static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_message_error, void *context);
@@ -55,8 +57,6 @@ static void set_text_year(char*);
 static void set_text_month(char*);
 static void set_text_weekday(char*);
 static void set_text_time(char*);
-
-//their code//
   
 void request_weather(void){
 
@@ -70,7 +70,7 @@ void request_weather(void){
   
 }
 
-static Window *s_main_window;;
+//static Window *s_main_window;;
 
 static TextLayer *s_output_layer;
 static AppSync s_sync;
@@ -144,34 +144,44 @@ static void main_window_unload(Window *window) {
 
 static void init(void) {
   show_window();
+  
   // Setup AppSync
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
-
-  // Setup initial values
+  
+  //load initial values
   Tuplet initial_values[] = {
-    TupletInteger(KEY_COUNT, 0),
-    TupletCString(WEATHER_CITY_KEY, "NULL"),
-    TupletCString(WEATHER_TEMPERATURE_KEY, "NULL°C"),
-    TupletCString(WEATHER_CONDITION_KEY, "NULL")
+      TupletCString(WEATHER_CITY_KEY, "NULL"),
+      TupletCString(WEATHER_TEMPERATURE_KEY, "NULL°C"),
+      TupletCString(WEATHER_CONDITION_KEY, "NULL")
   };
+  if(persist_exists(WEATHER_DATA_LOCATION)
+     && persist_read_data(WEATHER_DATA_LOCATION, &weather_buffer, sizeof(struct Weather)) != E_DOES_NOT_EXIST){
+    Tuplet initial_values[] = {
+      TupletCString(WEATHER_CITY_KEY, weather_buffer.location),
+      TupletCString(WEATHER_TEMPERATURE_KEY, weather_buffer.temperature),
+      TupletCString(WEATHER_CONDITION_KEY, weather_buffer.condition)
+    };
+  }
 
   // Begin using AppSync
   app_sync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values, ARRAY_LENGTH(initial_values), sync_changed_handler, sync_error_handler, NULL);
   
-  tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
+  // Begin Clock Ticking
+  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
   
+  // Start Weather Updating
   start_weather_timer(NULL);
 }
 
 static void start_weather_timer(void* data){
   request_weather();
-  app_timer_register(1000*60*10, start_weather_timer, NULL);
+  app_timer_register(1000*60, start_weather_timer, NULL);
 }
 
 static void deinit(void) {
   // Destroy main Window
   hide_window();
-  window_destroy(s_main_window);
+  //window_destroy(s_main_window);
 
   // Finish using AppSync
   app_sync_deinit(&s_sync);
