@@ -18,4 +18,6 @@ Pebble.addEventListener('ready', function(e) {
 
 Pebble.addEventListener('appmessage', function(e) {
   console.log('AppMessage received!');
+    var dict = {"KEY_COUNT": 100};
+    Pebble.sendAppMessage(dict);
 });

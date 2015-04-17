@@ -1,6 +1,10 @@
 {
     "appKeys": {
-        "KEY_COUNT": 5
+        "KEY_COUNT": 5,
+        "WEATHER_CITY_KEY": 1,
+        "WEATHER_CONDITION_KEY": 3,
+        "WEATHER_REQUEST": 0,
+        "WEATHER_TEMPERATURE_KEY": 2
     },
     "capabilities": [
         ""
