@@ -2,17 +2,11 @@
 Pebble.addEventListener('ready', function(e) {
   console.log('PebbleKit JS ready!');
   get_location();
-  //send_city("kansas");
-  //send_temperature("100C");
-  //send_condition("chance of meatballs");
 });
 
 Pebble.addEventListener('appmessage', function(e) {
   console.log('AppMessage received!');
   get_location();
-  //send_city("kansas City");
-  //send_temperature("50C");
-  //send_condition("hail and brimstone");
 });
 
 
@@ -62,8 +56,11 @@ function get_location(){
       var location = {
         latitude:   pos.coords.latitude,
         longitude:  pos.coords.longitude,
+        
         recent:     true
       };
+      console.log(location.latitude);
+      console.log(location.longitude);
       get_weather(location);
     },
     function locationError(err) {
@@ -115,7 +112,7 @@ function get_weather(location){
 }
 
 function send_weather(weather){
-  send_city(weather.name);
+  send_city(weather.city);
   send_condition(weather.condition);
   send_temperature(weather.temperature);
 }

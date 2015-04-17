@@ -24,10 +24,16 @@ enum weather_key{
   WEATHER_TIME_STAMP = 0x4
 };
 struct Weather{
-  char location[20];
-  char temperature[5];
-  char condition[20];
+  char location[32];
+  char temperature[9];
+  char condition[32];
   int time;
+};
+
+static struct Weather weather = {
+  .location = "Montreal",
+  .temperature = "-273.4°C",
+  .condition = "Raining Men"
 };
 
 static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context);
@@ -36,6 +42,7 @@ static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app
 static void init();
 static void deinit();
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed );
+static void start_weather_timer();
 
 void show_window(void);
 void hide_window(void);
@@ -51,7 +58,7 @@ static void set_text_time(char*);
 
 //their code//
   
-void send_message(void){
+void request_weather(void){
 
   DictionaryIterator *iter;
 	
@@ -72,7 +79,7 @@ static uint8_t s_sync_buffer[128];
 static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context) {
   // Update the TextLayer output
   static char s_city_buffer[32];
-  static char s_temperature_buffer[32];
+  static char s_temperature_buffer[5];
   static char s_condition_buffer[32];
   switch(key){
     case WEATHER_CITY_KEY:
@@ -90,8 +97,8 @@ static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, con
   }
 }
 
-static void callback(void* data){
-  send_message();
+static void weather_callback(void* data){
+  request_weather();
 }
 
 static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_message_error, void *context) {
@@ -99,7 +106,10 @@ static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app
   APP_LOG(APP_LOG_LEVEL_ERROR, "sync error!");
   switch (app_message_error) {
     case APP_MSG_OK:   APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_OK"); break;
-    case APP_MSG_SEND_TIMEOUT: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_SEND_TIMEOUT");app_timer_register(1000, callback, NULL);break;
+    case APP_MSG_SEND_TIMEOUT: 
+      APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_SEND_TIMEOUT");
+      app_timer_register(1000, weather_callback, NULL);
+      break;
     case APP_MSG_SEND_REJECTED: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_SEND_REJECTED");break;
     case APP_MSG_NOT_CONNECTED: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_NOT_CONNECTED");break;
     case APP_MSG_APP_NOT_RUNNING: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_APP_NOT_RUNNING");break;
@@ -133,13 +143,6 @@ static void main_window_unload(Window *window) {
 }
 
 static void init(void) {
-  // Create main Window
-  s_main_window = window_create();
-  window_set_window_handlers(s_main_window, (WindowHandlers) {
-    .load = main_window_load,
-    .unload = main_window_unload,
-  });
-  window_stack_push(s_main_window, true);
   show_window();
   // Setup AppSync
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
@@ -147,9 +150,9 @@ static void init(void) {
   // Setup initial values
   Tuplet initial_values[] = {
     TupletInteger(KEY_COUNT, 0),
-    TupletCString(WEATHER_CITY_KEY, "Montreal"),
-    TupletCString(WEATHER_TEMPERATURE_KEY, "0°C"),
-    TupletCString(WEATHER_CONDITION_KEY, "Windy")
+    TupletCString(WEATHER_CITY_KEY, "NULL"),
+    TupletCString(WEATHER_TEMPERATURE_KEY, "NULL°C"),
+    TupletCString(WEATHER_CONDITION_KEY, "NULL")
   };
 
   // Begin using AppSync
@@ -157,7 +160,12 @@ static void init(void) {
   
   tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
   
-  send_message();
+  start_weather_timer(NULL);
+}
+
+static void start_weather_timer(void* data){
+  request_weather();
+  app_timer_register(1000*60*10, start_weather_timer, NULL);
 }
 
 static void deinit(void) {
@@ -242,7 +250,7 @@ static void initialise_ui(void) {
   month_layer = text_layer_create(GRect(99, 20, 42, 30));
   text_layer_set_background_color(month_layer, GColorClear);
   text_layer_set_text_color(month_layer, GColorWhite);
-  text_layer_set_text(month_layer, "JUL");
+  text_layer_set_text(month_layer, "NULL");
   text_layer_set_text_alignment(month_layer, GTextAlignmentRight);
   text_layer_set_font(month_layer, s_res_gothic_24_bold);
   layer_add_child(window_get_root_layer(s_window), (Layer *)month_layer);
@@ -258,7 +266,7 @@ static void initialise_ui(void) {
   weekday_layer = text_layer_create(GRect(50, 20, 42, 28));
   text_layer_set_background_color(weekday_layer, GColorClear);
   text_layer_set_text_color(weekday_layer, GColorWhite);
-  text_layer_set_text(weekday_layer, "WED");
+  text_layer_set_text(weekday_layer, "LOAD");
   text_layer_set_text_alignment(weekday_layer, GTextAlignmentCenter);
   text_layer_set_font(weekday_layer, s_res_gothic_24_bold);
   layer_add_child(window_get_root_layer(s_window), (Layer *)weekday_layer);
@@ -275,7 +283,7 @@ static void initialise_ui(void) {
   year_layer = text_layer_create(GRect(4, 20, 42, 28));
   text_layer_set_background_color(year_layer, GColorClear);
   text_layer_set_text_color(year_layer, GColorWhite);
-  text_layer_set_text(year_layer, "92");
+  text_layer_set_text(year_layer, "NULL");
   text_layer_set_font(year_layer, s_res_gothic_24_bold);
   layer_add_child(window_get_root_layer(s_window), (Layer *)year_layer);
   
