@@ -71,16 +71,10 @@ static uint8_t s_sync_buffer[128];
 
 static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context) {
   // Update the TextLayer output
-  static char s_count_buffer[32];
   static char s_city_buffer[32];
   static char s_temperature_buffer[32];
   static char s_condition_buffer[32];
   switch(key){
-    //case KEY_COUNT:
-      //snprintf(s_count_buffer, sizeof(s_count_buffer), "count: %d", (int)new_tuple->value->int32);
-      //text_layer_set_text(s_output_layer, s_count_buffer);
-      //set_text_condition(s_count_buffer);
-      //break;
     case WEATHER_CITY_KEY:
       snprintf(s_city_buffer, sizeof(s_city_buffer), "%s", (char*)new_tuple->value->cstring);
       set_text_location(s_city_buffer);
@@ -96,12 +90,16 @@ static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, con
   }
 }
 
+static void callback(void* data){
+  send_message();
+}
+
 static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_message_error, void *context) {
   // An error occured!
   APP_LOG(APP_LOG_LEVEL_ERROR, "sync error!");
   switch (app_message_error) {
     case APP_MSG_OK:   APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_OK"); break;
-    case APP_MSG_SEND_TIMEOUT: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_SEND_TIMEOUT");break;
+    case APP_MSG_SEND_TIMEOUT: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_SEND_TIMEOUT");app_timer_register(1000, callback, NULL);break;
     case APP_MSG_SEND_REJECTED: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_SEND_REJECTED");break;
     case APP_MSG_NOT_CONNECTED: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_NOT_CONNECTED");break;
     case APP_MSG_APP_NOT_RUNNING: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_APP_NOT_RUNNING");break;
