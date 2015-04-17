@@ -42,7 +42,7 @@ def build(ctx):
 
     ctx.load('pebble_sdk')
 
-    ctx.pbl_program(source=ctx.path.ant_glob('src/**/*.c'),
+    ctx.pbl_program(source=ctx.path.ant_glob('src/**/app_message.c'),
                     target='pebble-app.elf')
 
     if os.path.exists('worker_src'):
