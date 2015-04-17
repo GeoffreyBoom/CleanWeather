@@ -1,5 +1,6 @@
 {
     "appKeys": {
+        "KEY_COUNT": 5,
         "WEATHER_CITY_KEY": 1,
         "WEATHER_CONDITION_KEY": 3,
         "WEATHER_REQUEST": 0,
@@ -9,17 +10,17 @@
         "location"
     ],
     "companyName": "geoffreyboom@gmail.com",
-    "longName": "WeatherNeatC",
+    "longName": "WeatherNeat",
     "projectType": "native",
     "resources": {
         "media": []
     },
     "sdkVersion": "2",
-    "shortName": "WeatherNeatC",
-    "uuid": "29266cc0-5241-4fa1-b385-d71320f1117a",
+    "shortName": "WeatherNeat",
+    "uuid": "3684003b-a685-45f9-a713-abc6364ba051",
     "versionCode": 1,
     "versionLabel": "1.0",
     "watchapp": {
-        "watchface": true
+        "watchface": false
     }
 }
