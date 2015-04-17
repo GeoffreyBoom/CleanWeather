@@ -14,6 +14,8 @@ static TextLayer *weekday_layer;
 static TextLayer *condition_layer;
 static TextLayer *year_layer;
 static TextLayer *location_layer;
+static TextLayer *update_time_layer;
+
 
 enum weather_key{
   WEATHER_REQUEST_KEY = 0x0,
@@ -52,11 +54,13 @@ void hide_window(void);
 static void set_text_temperature(char*);
 static void set_text_condition(char*);
 static void set_text_location(char*);
+static void set_text_update_time(char*);
 
 static void set_text_year(char*);
 static void set_text_month(char*);
 static void set_text_weekday(char*);
 static void set_text_time(char*);
+
   
 void request_weather(void){
 
@@ -98,8 +102,9 @@ static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, con
       set_text_condition(s_condition_buffer);
       break;
   }
+  weather_buffer.time = time(NULL);
   persist_write_data(WEATHER_DATA_LOCATION, &weather_buffer, sizeof(struct Weather));
-
+  tick_handler(NULL, MINUTE_UNIT);
 }
 
 static void weather_callback(void* data){
@@ -182,7 +187,7 @@ static void init(void) {
 
 static void start_weather_timer(void* data){
   request_weather();
-  app_timer_register(1000*60, start_weather_timer, NULL);
+  app_timer_register(1000*60*10, start_weather_timer, NULL);
 }
 
 static void deinit(void) {
@@ -214,7 +219,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed ){
     strftime(dtime,  sizeof("00:00"), "%R"    , tick_time);
   } else {
     // Use 12 hour format
-    strftime(dtime,  sizeof("00:00"), "%I:%M:", tick_time);
+    strftime(dtime,  sizeof("00:00"), "%I:%M", tick_time);
   }
   
   //set month
@@ -233,6 +238,12 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed ){
   set_text_month(month);
   set_text_weekday(weekday);
   set_text_time(dtime);
+  
+  static char sdeltat[10];
+  long deltat = (weather_buffer.time - temp)/60;
+  snprintf(sdeltat, sizeof(sdeltat), "%li", deltat);
+  set_text_update_time(sdeltat);
+
 }
 
 // BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
@@ -305,11 +316,18 @@ static void initialise_ui(void) {
   layer_add_child(window_get_root_layer(s_window), (Layer *)year_layer);
   
   // location_layer
-  location_layer = text_layer_create(GRect(5, 130, 134, 24));
+  location_layer = text_layer_create(GRect(4, 130, 86, 24));
   text_layer_set_text(location_layer, "LOADING");
   text_layer_set_text_alignment(location_layer, GTextAlignmentCenter);
   text_layer_set_font(location_layer, s_res_gothic_18_bold);
   layer_add_child(window_get_root_layer(s_window), (Layer *)location_layer);
+  
+  // update_time_layer
+  update_time_layer = text_layer_create(GRect(94, 130, 46, 24));
+  text_layer_set_text(update_time_layer, "!!00:00");
+  text_layer_set_text_alignment(update_time_layer, GTextAlignmentCenter);
+  text_layer_set_font(update_time_layer, s_res_gothic_18_bold);
+  layer_add_child(window_get_root_layer(s_window), (Layer *)update_time_layer);
 }
 
 static void destroy_ui(void) {
@@ -322,6 +340,7 @@ static void destroy_ui(void) {
   text_layer_destroy(condition_layer);
   text_layer_destroy(year_layer);
   text_layer_destroy(location_layer);
+  text_layer_destroy(update_time_layer);
 }
 // END AUTO-GENERATED UI CODE
 
@@ -352,6 +371,9 @@ static void set_text_condition(char* condition){
 }
 static void set_text_location(char* location){
   text_layer_set_text(location_layer, location);
+}
+static void set_text_update_time(char* update_time){
+  text_layer_set_text(update_time_layer, update_time);
 }
 
 void show_window(void) {
