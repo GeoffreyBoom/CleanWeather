@@ -30,8 +30,6 @@ struct Weather{
   int time;
 };
 
-static void set_weather(struct Weather*);
-static void request_weather(void);
 static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context);
 static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_message_error, void *context);
 
@@ -69,7 +67,7 @@ static Window *s_main_window;;
 
 static TextLayer *s_output_layer;
 static AppSync s_sync;
-static uint8_t s_sync_buffer[64];
+static uint8_t s_sync_buffer[128];
 
 static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context) {
   // Update the TextLayer output
@@ -78,11 +76,11 @@ static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, con
   static char s_temperature_buffer[32];
   static char s_condition_buffer[32];
   switch(key){
-    case KEY_COUNT:
-      snprintf(s_count_buffer, sizeof(s_count_buffer), "%d", (int)new_tuple->value->int32);
+    //case KEY_COUNT:
+      //snprintf(s_count_buffer, sizeof(s_count_buffer), "count: %d", (int)new_tuple->value->int32);
       //text_layer_set_text(s_output_layer, s_count_buffer);
-      set_text_condition(s_count_buffer);
-      break;
+      //set_text_condition(s_count_buffer);
+      //break;
     case WEATHER_CITY_KEY:
       snprintf(s_city_buffer, sizeof(s_city_buffer), "%s", (char*)new_tuple->value->cstring);
       set_text_location(s_city_buffer);
@@ -117,9 +115,7 @@ static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app
     case APP_MSG_CLOSED:APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_CLOSED"); break;
     case APP_MSG_INTERNAL_ERROR:APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_INTERNAL_ERROR");break;
     default:APP_LOG(APP_LOG_LEVEL_ERROR, "UNKNOWN ERROR"); break;
-  }  
-  send_message();
-
+  }
 }
 
 static void main_window_load(Window *window) {

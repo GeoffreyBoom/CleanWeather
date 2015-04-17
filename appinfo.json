@@ -7,16 +7,16 @@
         "WEATHER_TEMPERATURE_KEY": 2
     },
     "capabilities": [
-        ""
+        "location"
     ],
     "companyName": "geoffreyboom@gmail.com",
-    "longName": "WeatherTest",
+    "longName": "WeatherNeat",
     "projectType": "native",
     "resources": {
         "media": []
     },
     "sdkVersion": "2",
-    "shortName": "WeatherTest",
+    "shortName": "WeatherNeat",
     "uuid": "3684003b-a685-45f9-a713-abc6364ba051",
     "versionCode": 1,
     "versionLabel": "1.0",
