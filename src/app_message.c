@@ -31,7 +31,7 @@ struct Weather{
   char location[32];
   char temperature[9];
   char condition[32];
-  int time;
+  time_t time;
 };
 
 //a static buffer for loading and storing in memory
@@ -70,7 +70,7 @@ void request_weather(void){
   
 }
 
-//static Window *s_main_window;;
+static Window *s_main_window;;
 
 static TextLayer *s_output_layer;
 static AppSync s_sync;
@@ -84,17 +84,22 @@ static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, con
   switch(key){
     case WEATHER_CITY_KEY:
       snprintf(s_city_buffer, sizeof(s_city_buffer), "%s", (char*)new_tuple->value->cstring);
+      strncpy(weather_buffer.location, s_city_buffer, sizeof(s_city_buffer));
       set_text_location(s_city_buffer);
       break;
     case WEATHER_TEMPERATURE_KEY:
       snprintf(s_temperature_buffer, sizeof(s_temperature_buffer), "%s", (char*)new_tuple->value->cstring);
+      strncpy(weather_buffer.temperature, s_temperature_buffer, sizeof(s_temperature_buffer));
       set_text_temperature(s_temperature_buffer);
       break;
     case WEATHER_CONDITION_KEY:
       snprintf(s_condition_buffer, sizeof(s_condition_buffer), "%s", (char*)new_tuple->value->cstring);
+      strncpy(weather_buffer.condition, s_condition_buffer, sizeof(s_condition_buffer));
       set_text_condition(s_condition_buffer);
       break;
   }
+  persist_write_data(WEATHER_DATA_LOCATION, &weather_buffer, sizeof(struct Weather));
+
 }
 
 static void weather_callback(void* data){
@@ -149,25 +154,27 @@ static void init(void) {
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
   
   //load initial values
-  Tuplet initial_values[] = {
-      TupletCString(WEATHER_CITY_KEY, "NULL"),
-      TupletCString(WEATHER_TEMPERATURE_KEY, "NULL°C"),
-      TupletCString(WEATHER_CONDITION_KEY, "NULL")
-  };
-  if(persist_exists(WEATHER_DATA_LOCATION)
-     && persist_read_data(WEATHER_DATA_LOCATION, &weather_buffer, sizeof(struct Weather)) != E_DOES_NOT_EXIST){
-    Tuplet initial_values[] = {
-      TupletCString(WEATHER_CITY_KEY, weather_buffer.location),
-      TupletCString(WEATHER_TEMPERATURE_KEY, weather_buffer.temperature),
-      TupletCString(WEATHER_CONDITION_KEY, weather_buffer.condition)
-    };
+  //if value not in memory
+  //create default initial values
+  if(!(persist_exists(WEATHER_DATA_LOCATION)
+     && persist_read_data(WEATHER_DATA_LOCATION, &weather_buffer, sizeof(struct Weather)) != E_DOES_NOT_EXIST)){
+    strcpy(weather_buffer.location, "NULL");
+    strcpy(weather_buffer.temperature, "NULL°C");
+    strcpy(weather_buffer.condition, "NULL");
+    weather_buffer.time = time(NULL);
+    persist_write_data(WEATHER_DATA_LOCATION, &weather_buffer, sizeof(struct Weather));
   }
-
-  // Begin using AppSync
-  app_sync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values, ARRAY_LENGTH(initial_values), sync_changed_handler, sync_error_handler, NULL);
+  Tuplet initial_values[] = {
+    TupletCString(WEATHER_CITY_KEY, weather_buffer.location),
+    TupletCString(WEATHER_TEMPERATURE_KEY, weather_buffer.temperature),
+    TupletCString(WEATHER_CONDITION_KEY, weather_buffer.condition)
+  };
   
   // Begin Clock Ticking
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+
+  // Begin using AppSync
+  app_sync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values, ARRAY_LENGTH(initial_values), sync_changed_handler, sync_error_handler, NULL);
   
   // Start Weather Updating
   start_weather_timer(NULL);
