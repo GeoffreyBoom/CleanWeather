@@ -355,17 +355,17 @@ static void initialise_ui(void) {
   layer_add_child(window_get_root_layer(s_window), (Layer *)year_layer);
   
   // location_layer
-  location_layer = text_layer_create(GRect(4, 130, 86, 24));
+  location_layer = text_layer_create(GRect(4, 130, 86, 20));
   text_layer_set_text(location_layer, "LOADING");
   text_layer_set_text_alignment(location_layer, GTextAlignmentCenter);
   text_layer_set_font(location_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
   layer_add_child(window_get_root_layer(s_window), (Layer *)location_layer);
   
   // update_time_layer
-  update_time_layer = text_layer_create(GRect(94, 130, 46, 24));
+  update_time_layer = text_layer_create(GRect(94, 130, 46, 20));
   text_layer_set_text(update_time_layer, "!!00:00");
   text_layer_set_text_alignment(update_time_layer, GTextAlignmentCenter);
-  text_layer_set_font(update_time_layer, s_res_gothic_18_bold);
+  text_layer_set_font(update_time_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
   layer_add_child(window_get_root_layer(s_window), (Layer *)update_time_layer);
 }
 
