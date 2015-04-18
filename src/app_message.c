@@ -157,7 +157,7 @@ static void init(void) {
   
   //begin bluetooth service
   bluetooth_connection_service_subscribe(bluetooth_handler);
-  bluetooth_handler(true);
+  bluetooth_handler(bluetooth_connection_service_peek());
 
 
   // Begin using AppSync
@@ -176,7 +176,7 @@ static void deinit(void) {
   // Destroy main Window
   hide_window();
   //window_destroy(s_main_window);
-
+  bluetooth_connection_service_unsubscribe();
   // Finish using AppSync
   app_sync_deinit(&s_sync);
 }
@@ -253,7 +253,6 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed ){
 
 }
 
-// BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
 static GFont s_res_gothic_28_bold;
 static GFont s_res_gothic_24_bold;
 static GFont s_res_gothic_18_bold;
@@ -348,7 +347,6 @@ static void destroy_ui(void) {
   text_layer_destroy(location_layer);
   text_layer_destroy(update_time_layer);
 }
-// END AUTO-GENERATED UI CODE
 
 static void handle_window_unload(Window* window) {
   destroy_ui();
