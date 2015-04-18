@@ -11,10 +11,11 @@ static TextLayer *year_layer;
 static TextLayer *location_layer;
 static TextLayer *update_time_layer;
 
-static BitmapLayer *bluetooth_layer;
-static GBitmap *bluetooth_icon;
-static BitmapLayer *battery_layer;
-static GBitmap *battery_icon;
+static BitmapLayer *bluetooth_layer = NULL;
+static GBitmap *bluetooth_icon = NULL;
+static BitmapLayer *battery_layer = NULL;
+static GBitmap *battery_icon = NULL;
+static int battery_level = 10;
 
 
 
@@ -199,18 +200,37 @@ int main(void) {
   deinit();
 }
 
+static void draw_battery_power(Layer *layer, GContext *ctx) {
+  graphics_draw_bitmap_in_rect(ctx, battery_icon, layer_get_bounds(layer));
+  int top = 3;
+  int left = 4;
+  graphics_context_set_text_color(ctx, GColorBlack);
+  for(int row = top; row < top+4; row++){
+    for(int col = left; col < left + battery_level; col++){
+      graphics_draw_pixel(ctx, GPoint(col, row));
+    }
+  }
+}
+
 static void battery_handler(BatteryChargeState battery){
   float percent = battery.charge_percent;
-  battery_icon = gbitmap_create_with_resource(RESOURCE_ID_battery_dark_icon);
-  battery_layer = bitmap_layer_create(GRect(4,3,19,10));
-  bitmap_layer_set_bitmap(battery_layer, battery_icon);
-  layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(battery_layer));
+  int top = 4;
+  int left = 5;
+  if(battery_icon == NULL && battery_layer == NULL){
+    battery_icon = gbitmap_create_with_resource(RESOURCE_ID_battery_dark_icon);
+    battery_layer = bitmap_layer_create(GRect(left-1,top-1,19,10));
+    bitmap_layer_set_bitmap(battery_layer, battery_icon);
+    layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(battery_layer));
+    layer_set_update_proc(bitmap_layer_get_layer(battery_layer), draw_battery_power);
+  }
+  layer_mark_dirty(bitmap_layer_get_layer(battery_layer));
+  battery_level = percent/10;
 }
 
 static void bluetooth_handler(bool bluetooth){
   if(bluetooth){
     bluetooth_icon = gbitmap_create_with_resource(RESOURCE_ID_bluetooth_dark_icon);
-    bluetooth_layer = bitmap_layer_create(GRect(130,2,8,13));
+    bluetooth_layer = bitmap_layer_create(GRect(125,2,8,13));
     bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_icon);
     layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(bluetooth_layer));
   }
