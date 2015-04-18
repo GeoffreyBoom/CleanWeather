@@ -358,7 +358,7 @@ static void initialise_ui(void) {
   location_layer = text_layer_create(GRect(4, 130, 86, 24));
   text_layer_set_text(location_layer, "LOADING");
   text_layer_set_text_alignment(location_layer, GTextAlignmentCenter);
-  text_layer_set_font(location_layer, s_res_gothic_18_bold);
+  text_layer_set_font(location_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
   layer_add_child(window_get_root_layer(s_window), (Layer *)location_layer);
   
   // update_time_layer
