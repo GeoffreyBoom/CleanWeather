@@ -1,11 +1,6 @@
-/*
- * main.c
- * Creates a Window and output TextLayer, then opens AppSync to 
- * keep up-to-date with a counter running in pebble-js-app.js (see below).
- */
-
 #include <pebble.h>
 
+static Window *s_window;
 static TextLayer *title_layer;
 static TextLayer *time_layer;
 static TextLayer *month_layer;
@@ -46,6 +41,7 @@ static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app
 static void init();
 static void deinit();
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed );
+static void bluetooth_handler(bool bluetooth);
 static void start_weather_timer();
 
 void show_window(void);
@@ -74,9 +70,6 @@ void request_weather(void){
   
 }
 
-static Window *s_main_window;;
-
-static TextLayer *s_output_layer;
 static AppSync s_sync;
 static uint8_t s_sync_buffer[128];
 
@@ -136,22 +129,6 @@ static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app
   }
 }
 
-static void main_window_load(Window *window) {
-  Layer *window_layer = window_get_root_layer(window);
-  GRect window_bounds = layer_get_bounds(window_layer);
-
-  // Create output TextLayer
-  s_output_layer = text_layer_create(GRect(0, 0, window_bounds.size.w, window_bounds.size.h));
-  text_layer_set_text_alignment(s_output_layer, GTextAlignmentCenter);
-  text_layer_set_text(s_output_layer, "Waiting...");
-  layer_add_child(window_layer, text_layer_get_layer(s_output_layer));
-}
-
-static void main_window_unload(Window *window) {
-  // Destroy output TextLayer
-  text_layer_destroy(s_output_layer);
-}
-
 static void init(void) {
   show_window();
   
@@ -177,6 +154,11 @@ static void init(void) {
   
   // Begin Clock Ticking
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+  
+  //begin bluetooth service
+  bluetooth_connection_service_subscribe(bluetooth_handler);
+  bluetooth_handler(true);
+
 
   // Begin using AppSync
   app_sync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values, ARRAY_LENGTH(initial_values), sync_changed_handler, sync_error_handler, NULL);
@@ -203,6 +185,26 @@ int main(void) {
   init();
   app_event_loop();
   deinit();
+}
+
+static void battery_handler(BatteryChargeState new_state){
+  float percent = new_state.charge_percent;
+}
+
+static void bluetooth_handler(bool bluetooth){
+  static BitmapLayer *s_bitmap_layer;
+  static GBitmap *s_example_bitmap;
+  if(bluetooth){
+    s_example_bitmap = gbitmap_create_with_resource(RESOURCE_ID_bluetooth_icon_WHITE);
+    s_bitmap_layer = bitmap_layer_create(GRect(130,16,6,11));
+    bitmap_layer_set_bitmap(s_bitmap_layer, s_example_bitmap);
+    layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(s_bitmap_layer));
+  }
+  else{
+    gbitmap_destroy(s_example_bitmap);
+    bitmap_layer_destroy(s_bitmap_layer);
+  }
+  
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed ){
@@ -252,7 +254,6 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed ){
 }
 
 // BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
-static Window *s_window;
 static GFont s_res_gothic_28_bold;
 static GFont s_res_gothic_24_bold;
 static GFont s_res_gothic_18_bold;
