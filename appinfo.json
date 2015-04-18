@@ -13,7 +13,13 @@
     "longName": "WeatherNeat",
     "projectType": "native",
     "resources": {
-        "media": []
+        "media": [
+            {
+                "file": "images/download.png",
+                "name": "ScreenShot",
+                "type": "png"
+            }
+        ]
     },
     "sdkVersion": "2",
     "shortName": "WeatherNeat",

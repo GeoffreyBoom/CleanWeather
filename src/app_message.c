@@ -209,10 +209,10 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed ){
   time_t temp = (time(NULL));
   tick_time = localtime(&temp);
   static char dtime[]   = "00:00";
-  static char month[]   = "---";
+  static char month[]   = "--- 00";
   static char weekday[] = "---";
   static char date[]    = "00";
-  static char year[]    = "00";
+  static char year[]    = "0000";
   //set time
   if(clock_is_24h_style() == true) {
     // Use 24 hour format
@@ -223,7 +223,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed ){
   }
   
   //set month
-  strftime(month,   sizeof("---"),   "%b"    , tick_time);
+  strftime(month,   sizeof("--- 00"),   "%b %d"    , tick_time);
   
   //set weekday
   strftime(weekday, sizeof("---"),   "%a"    , tick_time);
@@ -233,7 +233,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed ){
   //set_text_date(date);
   
   //set year
-  strftime(year,    sizeof("00"),    "%y"    , tick_time);
+  strftime(year,    sizeof("0000"),    "%Y"    , tick_time);
   set_text_year(year);
   set_text_month(month);
   set_text_weekday(weekday);
@@ -241,7 +241,12 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed ){
   
   static char sdeltat[10];
   long deltat = (weather_buffer.time - temp)/60;
-  snprintf(sdeltat, sizeof(sdeltat), "%li", deltat);
+  if(deltat > 10){
+    snprintf(sdeltat, sizeof(sdeltat), "DT:!%li!", deltat);
+  }
+  else{
+    snprintf(sdeltat, sizeof(sdeltat), "DT:%li", deltat);
+  }
   set_text_update_time(sdeltat);
 
 }
@@ -275,7 +280,7 @@ static void initialise_ui(void) {
   layer_add_child(window_get_root_layer(s_window), (Layer *)time_layer);
   
   // month_layer
-  month_layer = text_layer_create(GRect(99, 20, 42, 30));
+  month_layer = text_layer_create(GRect(90, 20, 51, 30));
   text_layer_set_background_color(month_layer, GColorClear);
   text_layer_set_text_color(month_layer, GColorWhite);
   text_layer_set_text(month_layer, "NULL");
