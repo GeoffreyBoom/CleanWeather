@@ -11,6 +11,12 @@ static TextLayer *year_layer;
 static TextLayer *location_layer;
 static TextLayer *update_time_layer;
 
+static BitmapLayer *bluetooth_layer;
+static GBitmap *bluetooth_icon;
+static BitmapLayer *battery_layer;
+static GBitmap *battery_icon;
+
+
 
 enum weather_key{
   WEATHER_REQUEST_KEY = 0x0,
@@ -42,6 +48,7 @@ static void init();
 static void deinit();
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed );
 static void bluetooth_handler(bool bluetooth);
+static void battery_handler(BatteryChargeState battery);
 static void start_weather_timer();
 
 void show_window(void);
@@ -159,6 +166,9 @@ static void init(void) {
   bluetooth_connection_service_subscribe(bluetooth_handler);
   bluetooth_handler(bluetooth_connection_service_peek());
 
+  //begin battery service
+  battery_state_service_subscribe(battery_handler);
+  battery_handler(battery_state_service_peek());
 
   // Begin using AppSync
   app_sync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values, ARRAY_LENGTH(initial_values), sync_changed_handler, sync_error_handler, NULL);
@@ -179,6 +189,8 @@ static void deinit(void) {
   bluetooth_connection_service_unsubscribe();
   // Finish using AppSync
   app_sync_deinit(&s_sync);
+  gbitmap_destroy(bluetooth_icon);
+  bitmap_layer_destroy(bluetooth_layer);
 }
 
 int main(void) {
@@ -187,22 +199,24 @@ int main(void) {
   deinit();
 }
 
-static void battery_handler(BatteryChargeState new_state){
-  float percent = new_state.charge_percent;
+static void battery_handler(BatteryChargeState battery){
+  float percent = battery.charge_percent;
+  battery_icon = gbitmap_create_with_resource(RESOURCE_ID_battery_dark_icon);
+  battery_layer = bitmap_layer_create(GRect(4,3,19,10));
+  bitmap_layer_set_bitmap(battery_layer, battery_icon);
+  layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(battery_layer));
 }
 
 static void bluetooth_handler(bool bluetooth){
-  static BitmapLayer *s_bitmap_layer;
-  static GBitmap *s_example_bitmap;
   if(bluetooth){
-    s_example_bitmap = gbitmap_create_with_resource(RESOURCE_ID_bluetooth_icon_WHITE);
-    s_bitmap_layer = bitmap_layer_create(GRect(130,16,6,11));
-    bitmap_layer_set_bitmap(s_bitmap_layer, s_example_bitmap);
-    layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(s_bitmap_layer));
+    bluetooth_icon = gbitmap_create_with_resource(RESOURCE_ID_bluetooth_dark_icon);
+    bluetooth_layer = bitmap_layer_create(GRect(130,2,8,13));
+    bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_icon);
+    layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(bluetooth_layer));
   }
   else{
-    gbitmap_destroy(s_example_bitmap);
-    bitmap_layer_destroy(s_bitmap_layer);
+    bitmap_layer_destroy(bluetooth_layer);
+    gbitmap_destroy(bluetooth_icon);
   }
   
 }

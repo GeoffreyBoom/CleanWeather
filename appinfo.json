@@ -15,6 +15,16 @@
     "resources": {
         "media": [
             {
+                "file": "images/bluetooth_black.png",
+                "name": "bluetooth_dark_icon",
+                "type": "png"
+            },
+            {
+                "file": "images/battery_black.png",
+                "name": "battery_dark_icon",
+                "type": "png"
+            },
+            {
                 "file": "images/battery.png",
                 "name": "battery_icon",
                 "type": "png"
