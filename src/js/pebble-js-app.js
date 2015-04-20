@@ -69,6 +69,7 @@ function get_weather(location){
   html.send();
 }
 
+
 function send_weather(weather){
   var dict = {"WEATHER_CITY_KEY": weather.city,
               "WEATHER_CONDITION_KEY": weather.condition,
@@ -83,6 +84,18 @@ function send_weather(weather){
       setTimeout(send_weather(weather), time);
     });
 }
+
+Pebble.addEventListener('showConfiguration', function(e) {
+  // Show config page
+  Pebble.openURL('http://geoffreyboom.github.io/NeatWeather');
+});
+
+Pebble.addEventListener('webviewclosed',
+  function(e) {
+    console.log('Configuration window returned: ' + e.response);
+  }
+);
+
 
 function send_city(city){
   var dict = {"WEATHER_CITY_KEY": city};

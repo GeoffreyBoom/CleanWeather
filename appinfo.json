@@ -7,7 +7,8 @@
         "WEATHER_TEMPERATURE_KEY": 2
     },
     "capabilities": [
-        "location"
+        "location",
+        "configurable"
     ],
     "companyName": "geoffreyboom@gmail.com",
     "longName": "WeatherNeat",
@@ -15,18 +16,8 @@
     "resources": {
         "media": [
             {
-                "file": "images/bluetooth_black.png",
-                "name": "bluetooth_dark_icon",
-                "type": "png"
-            },
-            {
-                "file": "images/battery_black.png",
-                "name": "battery_dark_icon",
-                "type": "png"
-            },
-            {
-                "file": "images/battery.png",
-                "name": "battery_icon",
+                "file": "images/download.png",
+                "name": "ScreenShot",
                 "type": "png"
             },
             {
@@ -35,8 +26,18 @@
                 "type": "png-trans"
             },
             {
-                "file": "images/download.png",
-                "name": "ScreenShot",
+                "file": "images/battery.png",
+                "name": "battery_icon",
+                "type": "png"
+            },
+            {
+                "file": "images/battery_black.png",
+                "name": "battery_dark_icon",
+                "type": "png"
+            },
+            {
+                "file": "images/bluetooth_black.png",
+                "name": "bluetooth_dark_icon",
                 "type": "png"
             }
         ]

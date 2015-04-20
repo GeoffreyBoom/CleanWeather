@@ -24,11 +24,12 @@ enum weather_key{
   WEATHER_CITY_KEY = 0x1,
   WEATHER_TEMPERATURE_KEY = 0x2,
   WEATHER_CONDITION_KEY = 0x3,
-  WEATHER_TIME_STAMP = 0x4
+  WEATHER_TIME_STAMP = 0x4,
+  LIGHT_TIME_KEY = 0x5
 };
 
 enum storage_key{
-  WEATHER_DATA_LOCATION = 0
+  WEATHER_DATA_LOCATION = 0,
 };
 
 struct Weather{
@@ -50,7 +51,10 @@ static void deinit();
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed );
 static void bluetooth_handler(bool bluetooth);
 static void battery_handler(BatteryChargeState battery);
+static void shake_handler(AccelAxisType axis, int32_t direction);
 static void start_weather_timer();
+
+static int light_time = 10;
 
 void show_window(void);
 void hide_window(void);
@@ -65,18 +69,9 @@ static void set_text_month(char*);
 static void set_text_weekday(char*);
 static void set_text_time(char*);
 
-  
-void request_weather(void){
+static void set_text_title(char* title);
 
-  DictionaryIterator *iter;
-	
-  app_message_outbox_begin(&iter);
-  
-  dict_write_end(iter);
-  
-  app_message_outbox_send();
-  
-}
+static void setup_app_sync();
 
 static AppSync s_sync;
 static uint8_t s_sync_buffer[128];
@@ -108,6 +103,18 @@ static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, con
   tick_handler(NULL, MINUTE_UNIT);
 }
 
+void request_weather(void){
+
+  DictionaryIterator *iter;
+	
+  app_message_outbox_begin(&iter);
+  
+  dict_write_end(iter);
+  
+  app_message_outbox_send();
+  
+}
+
 static void weather_callback(void* data){
   request_weather();
 }
@@ -137,9 +144,46 @@ static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app
   }
 }
 
+static void light_off(void* data){
+  set_text_title("CleanWeather");
+  light_enable(false);
+}
+
+
+static void shake_handler(AccelAxisType axis, int32_t direction){
+  light_enable(true);
+  app_timer_register(1000*light_time, light_off, NULL);
+  set_text_title("Light!");
+}
+
 static void init(void) {
   show_window();
   
+  // Begin App Sync
+  setup_app_sync();
+  
+  // Begin Clock Ticking
+  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+  
+  //register shake handler
+  accel_tap_service_subscribe(shake_handler);
+
+  //begin bluetooth service
+  bluetooth_connection_service_subscribe(bluetooth_handler);
+  //initializing bluetooth state
+  bluetooth_handler(bluetooth_connection_service_peek());
+  
+  //begin battery service
+  battery_state_service_subscribe(battery_handler);
+  //initializing battery
+  battery_handler(battery_state_service_peek());
+
+  
+  // Start Weather Updating
+  start_weather_timer(NULL);
+}
+
+static void setup_app_sync(){
   // Setup AppSync
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
   
@@ -157,25 +201,12 @@ static void init(void) {
   Tuplet initial_values[] = {
     TupletCString(WEATHER_CITY_KEY, weather_buffer.location),
     TupletCString(WEATHER_TEMPERATURE_KEY, weather_buffer.temperature),
-    TupletCString(WEATHER_CONDITION_KEY, weather_buffer.condition)
+    TupletCString(WEATHER_CONDITION_KEY, weather_buffer.condition),
+    TupletInteger(LIGHT_TIME_KEY, 6)
   };
   
-  // Begin Clock Ticking
-  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
-  
-  //begin bluetooth service
-  bluetooth_connection_service_subscribe(bluetooth_handler);
-  bluetooth_handler(bluetooth_connection_service_peek());
-
-  //begin battery service
-  battery_state_service_subscribe(battery_handler);
-  battery_handler(battery_state_service_peek());
-
   // Begin using AppSync
   app_sync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values, ARRAY_LENGTH(initial_values), sync_changed_handler, sync_error_handler, NULL);
-  
-  // Start Weather Updating
-  start_weather_timer(NULL);
 }
 
 static void start_weather_timer(void* data){
@@ -289,7 +320,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed ){
 
 static GFont s_res_gothic_28_bold;
 static GFont s_res_gothic_24_bold;
-static GFont s_res_gothic_18_bold;
+static GFont s_res_bitham_30_black;
 
 
 static void initialise_ui(void) {
@@ -297,9 +328,9 @@ static void initialise_ui(void) {
   window_set_background_color(s_window, GColorBlack);
   window_set_fullscreen(s_window, true);
   
-  s_res_gothic_28_bold = fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
+  s_res_bitham_30_black = fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK);
   s_res_gothic_24_bold = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
-  s_res_gothic_18_bold = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
+  s_res_gothic_28_bold = fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
   // title_layer
   title_layer = text_layer_create(GRect(0, 0, 144, 16));
   text_layer_set_text(title_layer, "CleanWeather");
@@ -307,66 +338,65 @@ static void initialise_ui(void) {
   layer_add_child(window_get_root_layer(s_window), (Layer *)title_layer);
   
   // time_layer
-  time_layer = text_layer_create(GRect(4, 80, 80, 38));
-  text_layer_set_text(time_layer, "NULL");
+  time_layer = text_layer_create(GRect(20, 37, 104, 31));
+  text_layer_set_background_color(time_layer, GColorClear);
+  text_layer_set_text_color(time_layer, GColorWhite);
+  text_layer_set_text(time_layer, "12:12");
   text_layer_set_text_alignment(time_layer, GTextAlignmentCenter);
-  text_layer_set_font(time_layer, s_res_gothic_28_bold);
+  text_layer_set_font(time_layer, s_res_bitham_30_black);
   layer_add_child(window_get_root_layer(s_window), (Layer *)time_layer);
   
   // month_layer
-  month_layer = text_layer_create(GRect(90, 20, 51, 30));
+  month_layer = text_layer_create(GRect(90, 14, 51, 30));
   text_layer_set_background_color(month_layer, GColorClear);
   text_layer_set_text_color(month_layer, GColorWhite);
-  text_layer_set_text(month_layer, "NULL");
+  text_layer_set_text(month_layer, "apr 23");
   text_layer_set_text_alignment(month_layer, GTextAlignmentRight);
   text_layer_set_font(month_layer, s_res_gothic_24_bold);
   layer_add_child(window_get_root_layer(s_window), (Layer *)month_layer);
   
   // temperature_layer
-  temperature_layer = text_layer_create(GRect(87, 80, 52, 38));
-  text_layer_set_text(temperature_layer, "LOAD");
+  temperature_layer = text_layer_create(GRect(88, 90, 52, 39));
+  text_layer_set_text(temperature_layer, "15°C");
   text_layer_set_text_alignment(temperature_layer, GTextAlignmentCenter);
   text_layer_set_font(temperature_layer, s_res_gothic_28_bold);
   layer_add_child(window_get_root_layer(s_window), (Layer *)temperature_layer);
   
-  // weekday_layer
-  weekday_layer = text_layer_create(GRect(50, 20, 42, 28));
-  text_layer_set_background_color(weekday_layer, GColorClear);
-  text_layer_set_text_color(weekday_layer, GColorWhite);
-  text_layer_set_text(weekday_layer, "LOAD");
-  text_layer_set_text_alignment(weekday_layer, GTextAlignmentCenter);
-  text_layer_set_font(weekday_layer, s_res_gothic_24_bold);
-  layer_add_child(window_get_root_layer(s_window), (Layer *)weekday_layer);
-  
   // condition_layer
-  condition_layer = text_layer_create(GRect(4, 55, 134, 18));
-  text_layer_set_background_color(condition_layer, GColorClear);
-  text_layer_set_text_color(condition_layer, GColorWhite);
-  text_layer_set_text(condition_layer, "LOADING");
+  condition_layer = text_layer_create(GRect(4, 90, 80, 39));
+  text_layer_set_text(condition_layer, "Scattered Clouds");
   text_layer_set_text_alignment(condition_layer, GTextAlignmentCenter);
   layer_add_child(window_get_root_layer(s_window), (Layer *)condition_layer);
   
   // year_layer
-  year_layer = text_layer_create(GRect(4, 20, 42, 28));
+  year_layer = text_layer_create(GRect(4, 14, 42, 28));
   text_layer_set_background_color(year_layer, GColorClear);
   text_layer_set_text_color(year_layer, GColorWhite);
-  text_layer_set_text(year_layer, "NULL");
+  text_layer_set_text(year_layer, "2015");
+  text_layer_set_text_alignment(year_layer, GTextAlignmentCenter);
   text_layer_set_font(year_layer, s_res_gothic_24_bold);
   layer_add_child(window_get_root_layer(s_window), (Layer *)year_layer);
   
   // location_layer
-  location_layer = text_layer_create(GRect(4, 130, 86, 20));
-  text_layer_set_text(location_layer, "LOADING");
+  location_layer = text_layer_create(GRect(4, 144, 94, 20));
+  text_layer_set_text(location_layer, "Hampsted");
   text_layer_set_text_alignment(location_layer, GTextAlignmentCenter);
-  text_layer_set_font(location_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
   layer_add_child(window_get_root_layer(s_window), (Layer *)location_layer);
   
   // update_time_layer
-  update_time_layer = text_layer_create(GRect(94, 130, 46, 20));
-  text_layer_set_text(update_time_layer, "!!00:00");
+  update_time_layer = text_layer_create(GRect(100, 144, 40, 20));
+  text_layer_set_text(update_time_layer, "DT:10");
   text_layer_set_text_alignment(update_time_layer, GTextAlignmentCenter);
-  text_layer_set_font(update_time_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
   layer_add_child(window_get_root_layer(s_window), (Layer *)update_time_layer);
+  
+  // weekday_layer
+  weekday_layer = text_layer_create(GRect(54, 14, 33, 30));
+  text_layer_set_background_color(weekday_layer, GColorClear);
+  text_layer_set_text_color(weekday_layer, GColorWhite);
+  text_layer_set_text(weekday_layer, "Wed");
+  text_layer_set_text_alignment(weekday_layer, GTextAlignmentCenter);
+  text_layer_set_font(weekday_layer, s_res_gothic_24_bold);
+  layer_add_child(window_get_root_layer(s_window), (Layer *)weekday_layer);
 }
 
 static void destroy_ui(void) {
@@ -384,6 +414,10 @@ static void destroy_ui(void) {
 
 static void handle_window_unload(Window* window) {
   destroy_ui();
+}
+
+static void set_text_title(char* title){
+  text_layer_set_text(title_layer, title);
 }
 
 //time functions
