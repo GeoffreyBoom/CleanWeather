@@ -1,0 +1,21 @@
+<head>
+  <script>
+  	function test(){
+  		params = {
+  			"light_on": document.getElementById("light_on").value,
+  			"weather_interval": document.getElementById("weather_interval").value
+  		}
+  		location.href = 'pebblejs://close#' + encodeURIComponent(JSON.stringify(params));
+  	}
+  </script>
+</head>
+<body>
+  <form>
+    How long should light stay on?:
+    <input type="number" id="light_on" value="6">
+    <br />
+    How often should weather update?:<input type="number" id="weather_interval" value="10"> minutes
+    <br />
+    <input type="button" onclick="test()" value="finished"></input>
+  </form>
+</body>
