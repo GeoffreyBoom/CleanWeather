@@ -1,6 +1,6 @@
 {
     "appKeys": {
-        "KEY_COUNT": 5,
+        "LIGHT_TIME_KEY": 5,
         "WEATHER_CITY_KEY": 1,
         "WEATHER_CONDITION_KEY": 3,
         "WEATHER_REQUEST": 0,
@@ -15,6 +15,11 @@
     "projectType": "native",
     "resources": {
         "media": [
+            {
+                "file": "images/charging.png",
+                "name": "CHARGING_DARK_ICON",
+                "type": "png"
+            },
             {
                 "file": "images/download.png",
                 "name": "ScreenShot",
