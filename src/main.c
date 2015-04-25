@@ -1,33 +1,69 @@
 #include <pebble.h>
 #include "main.h"
 
+static void init(void) {
 
-static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context) {
-  // Update the TextLayer output
-  static char s_city_buffer[32];
-  static char s_temperature_buffer[5];
-  static char s_condition_buffer[32];
-  switch(key){
-    case WEATHER_CITY_KEY:
-      snprintf(s_city_buffer, sizeof(s_city_buffer), "%s", (char*)new_tuple->value->cstring);
-      strncpy(weather_buffer.location, s_city_buffer, sizeof(s_city_buffer));
-      set_text_location(s_city_buffer);
-      break;
-    case WEATHER_TEMPERATURE_KEY:
-      snprintf(s_temperature_buffer, sizeof(s_temperature_buffer), "%s", (char*)new_tuple->value->cstring);
-      strncpy(weather_buffer.temperature, s_temperature_buffer, sizeof(s_temperature_buffer));
-      set_text_temperature(s_temperature_buffer);
-      break;
-    case WEATHER_CONDITION_KEY:
-      snprintf(s_condition_buffer, sizeof(s_condition_buffer), "%s", (char*)new_tuple->value->cstring);
-      strncpy(weather_buffer.condition, s_condition_buffer, sizeof(s_condition_buffer));
-      set_text_condition(s_condition_buffer);
-      break;
-  }
-  weather_buffer.time = time(NULL);
-  persist_write_data(WEATHER_DATA_LOCATION, &weather_buffer, sizeof(struct Weather));
-  tick_handler(NULL, MINUTE_UNIT);
+  show_window();
+  
+  // Begin App Sync
+  setup_app_sync();
+  
+  // Begin Clock Ticking
+  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+  
+  //register shake handler
+  accel_tap_service_subscribe(shake_handler);
+
+  //begin bluetooth service
+  bluetooth_connection_service_subscribe(bluetooth_handler);
+  //initializing bluetooth state
+  bluetooth_handler(bluetooth_connection_service_peek());
+  
+  //begin battery service
+  battery_state_service_subscribe(battery_handler);
+  //initializing battery
+  battery_handler(battery_state_service_peek());
+  
+  // Start Weather Updating
+  start_weather_timer(NULL);
 }
+
+static void deinit(void) {
+  // Destroy main Window
+  hide_window();
+  //window_destroy(s_main_window);
+  bluetooth_connection_service_unsubscribe();
+  // Finish using AppSync
+  app_sync_deinit(&s_sync);
+  gbitmap_destroy(bluetooth_icon);
+  bitmap_layer_destroy(bluetooth_layer);
+}
+
+static void bluetooth_handler(bool bluetooth){
+  if(bluetooth){
+    bluetooth_icon = gbitmap_create_with_resource(RESOURCE_ID_bluetooth_dark_icon);
+    bluetooth_layer = bitmap_layer_create(GRect(125+6,2,8,13));
+    bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_icon);
+    layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(bluetooth_layer));
+  }
+  else{
+    if(bluetooth_layer != NULL){
+      bitmap_layer_destroy(bluetooth_layer);
+      bluetooth_layer = NULL;
+    }
+    if(bluetooth_icon != NULL){
+      gbitmap_destroy(bluetooth_icon);
+      bluetooth_icon = NULL;
+    }
+  }
+}
+
+int main(void) {
+  init();
+  app_event_loop();
+  deinit();
+}
+
 
 void request_weather(void){
 
@@ -82,32 +118,7 @@ static void shake_handler(AccelAxisType axis, int32_t direction){
   set_text_title("Light!");
 }
 
-static void init(void) {
-  show_window();
-  
-  // Begin App Sync
-  setup_app_sync();
-  
-  // Begin Clock Ticking
-  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
-  
-  //register shake handler
-  accel_tap_service_subscribe(shake_handler);
 
-  //begin bluetooth service
-  bluetooth_connection_service_subscribe(bluetooth_handler);
-  //initializing bluetooth state
-  bluetooth_handler(bluetooth_connection_service_peek());
-  
-  //begin battery service
-  battery_state_service_subscribe(battery_handler);
-  //initializing battery
-  battery_handler(battery_state_service_peek());
-
-  
-  // Start Weather Updating
-  start_weather_timer(NULL);
-}
 
 static void setup_app_sync(){
   // Setup AppSync
@@ -124,12 +135,16 @@ static void setup_app_sync(){
     weather_buffer.time = time(NULL);
     persist_write_data(WEATHER_DATA_LOCATION, &weather_buffer, sizeof(struct Weather));
   }
+  if(!(persist_read_data(CONFIGURATION_LOCATION, &light_time, sizeof(light_time)) != E_DOES_NOT_EXIST)){
+    light_time=6;
+  }
   Tuplet initial_values[] = {
     TupletCString(WEATHER_CITY_KEY, weather_buffer.location),
     TupletCString(WEATHER_TEMPERATURE_KEY, weather_buffer.temperature),
     TupletCString(WEATHER_CONDITION_KEY, weather_buffer.condition),
-    TupletInteger(LIGHT_TIME_KEY, 6)
+    TupletInteger(LIGHT_TIME_KEY, light_time)
   };
+
   
   // Begin using AppSync
   app_sync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values, ARRAY_LENGTH(initial_values), sync_changed_handler, sync_error_handler, NULL);
@@ -140,22 +155,7 @@ static void start_weather_timer(void* data){
   app_timer_register(1000*60*10, start_weather_timer, NULL);
 }
 
-static void deinit(void) {
-  // Destroy main Window
-  hide_window();
-  //window_destroy(s_main_window);
-  bluetooth_connection_service_unsubscribe();
-  // Finish using AppSync
-  app_sync_deinit(&s_sync);
-  gbitmap_destroy(bluetooth_icon);
-  bitmap_layer_destroy(bluetooth_layer);
-}
 
-int main(void) {
-  init();
-  app_event_loop();
-  deinit();
-}
 
 static void draw_battery_power(Layer *layer, GContext *ctx) {
   graphics_draw_bitmap_in_rect(ctx, battery_icon, layer_get_bounds(layer));
@@ -173,6 +173,7 @@ static void battery_handler(BatteryChargeState battery){
   float percent = battery.charge_percent;
   int top = 4;
   int left = 5;
+  battery_level = percent/10;
   if(battery_icon == NULL && battery_layer == NULL){
     battery_icon = gbitmap_create_with_resource(RESOURCE_ID_battery_dark_icon);
     battery_layer = bitmap_layer_create(GRect(left-1,top-1,19,10));
@@ -181,24 +182,28 @@ static void battery_handler(BatteryChargeState battery){
     layer_set_update_proc(bitmap_layer_get_layer(battery_layer), draw_battery_power);
   }
   layer_mark_dirty(bitmap_layer_get_layer(battery_layer));
-  battery_level = percent/10;
+  if (battery.is_charging){
+    if(battery_charging_icon == NULL|| battery_charging_layer){
+      battery_charging_icon = gbitmap_create_with_resource(RESOURCE_ID_CHARGING_DARK_ICON);
+      battery_charging_layer = bitmap_layer_create(GRect(125-6,2,7,14));
+      bitmap_layer_set_compositing_mode(battery_charging_layer ,GCompOpAnd);
+      bitmap_layer_set_bitmap(battery_charging_layer, battery_charging_icon);
+      layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(battery_charging_layer));
+    }
+  }
+  else {
+    if(battery_charging_layer != NULL){
+      bitmap_layer_destroy(battery_charging_layer);
+      battery_charging_layer = NULL;
+    }
+    if(battery_charging_icon != NULL){
+      gbitmap_destroy(battery_charging_icon);
+      battery_charging_icon = NULL;
+    }
+  }
 }
 
-static void bluetooth_handler(bool bluetooth){
-  if(bluetooth){
-    bluetooth_icon = gbitmap_create_with_resource(RESOURCE_ID_bluetooth_dark_icon);
-    bluetooth_layer = bitmap_layer_create(GRect(125,2,8,13));
-    bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_icon);
-    layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(bluetooth_layer));
-  }
-  else{
-    bitmap_layer_destroy(bluetooth_layer);
-    gbitmap_destroy(bluetooth_icon);
-  }
-  
-}
-
-static void tick_handler(struct tm *tick_time, TimeUnits units_changed ){
+void tick_handler(struct tm *tick_time, TimeUnits units_changed ){
   time_t temp = (time(NULL));
   tick_time = localtime(&temp);
   static char dtime[]   = "00:00";
@@ -361,13 +366,13 @@ static void set_text_time(char* time){
 }
 
 //weather functions
-static void set_text_temperature(char* temperature){
+ void set_text_temperature(char* temperature){
   text_layer_set_text(temperature_layer, temperature);
 }
-static void set_text_condition(char* condition){
+ void set_text_condition(char* condition){
   text_layer_set_text(condition_layer, condition);
 }
-static void set_text_location(char* location){
+ void set_text_location(char* location){
   text_layer_set_text(location_layer, location);
 }
 static void set_text_update_time(char* update_time){

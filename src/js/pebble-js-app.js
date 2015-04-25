@@ -1,3 +1,4 @@
+var CONFIG_WEBSITE = 'http://geoffreyboom.github.io/WeatherNeat';
 
 Pebble.addEventListener('ready', function(e) {
   console.log('PebbleKit JS ready!');
@@ -87,14 +88,34 @@ function send_weather(weather){
 
 Pebble.addEventListener('showConfiguration', function(e) {
   // Show config page
-  Pebble.openURL('http://geoffreyboom.github.io/NeatWeather');
+  Pebble.openURL(CONFIG_WEBSITE);
 });
 
 Pebble.addEventListener('webviewclosed',
   function(e) {
-    console.log('Configuration window returned: ' + e.response);
+    var configuration = JSON.parse(decodeURIComponent(e.response));
+    console.log(decodeURIComponent(e.response));
+    console.log(configuration.light_on);
+    var dict={
+      "LIGHT_TIME_KEY": parseInt(configuration.light_on)
+    };
+    console.log('Configuration window returned: ' + dict.LIGHT_TIME_KEY);
+    send_configuration(dict);
+
   }
 );
+
+function send_configuration(dict){
+  Pebble.sendAppMessage(dict,
+    function(e){
+      console.out("send successful");
+    },
+    function(e){
+      var time = Math.floor((Math.random() * 1000) + 1);
+      setTimeout(send_configuration(dict), time);
+    }
+  );
+}
 
 
 function send_city(city){

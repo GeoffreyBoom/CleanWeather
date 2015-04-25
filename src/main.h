@@ -1,5 +1,5 @@
-#pragma once
 #include <pebble.h>
+#pragma once
 
 static Window *s_window;
 static TextLayer *title_layer;
@@ -16,6 +16,8 @@ static BitmapLayer *bluetooth_layer = NULL;
 static GBitmap *bluetooth_icon = NULL;
 static BitmapLayer *battery_layer = NULL;
 static GBitmap *battery_icon = NULL;
+static BitmapLayer *battery_charging_layer = NULL;
+static GBitmap *battery_charging_icon = NULL;
 static int battery_level = 10;
 
 
@@ -31,6 +33,7 @@ enum weather_key{
 
 enum storage_key{
   WEATHER_DATA_LOCATION = 0,
+  CONFIGURATION_LOCATION = 1
 };
 
 struct Weather{
@@ -44,12 +47,12 @@ struct Weather{
 //the weather on the persist_storage
 static struct Weather weather_buffer;
 
-static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context);
+void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context);
 static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_message_error, void *context);
 
 static void init();
 static void deinit();
-static void tick_handler(struct tm *tick_time, TimeUnits units_changed );
+void tick_handler(struct tm *tick_time, TimeUnits units_changed );
 static void bluetooth_handler(bool bluetooth);
 static void battery_handler(BatteryChargeState battery);
 static void shake_handler(AccelAxisType axis, int32_t direction);
@@ -60,9 +63,9 @@ static int light_time = 10;
 void show_window(void);
 void hide_window(void);
 
-static void set_text_temperature(char*);
-static void set_text_condition(char*);
-static void set_text_location(char*);
+void set_text_temperature(char*);
+void set_text_condition(char*);
+void set_text_location(char*);
 static void set_text_update_time(char*);
 
 static void set_text_year(char*);

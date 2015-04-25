@@ -1,6 +1,6 @@
 {
     "appKeys": {
-        "KEY_COUNT": 5,
+        "LIGHT_TIME_KEY": 5,
         "WEATHER_CITY_KEY": 1,
         "WEATHER_CONDITION_KEY": 3,
         "WEATHER_REQUEST": 0,
@@ -16,18 +16,8 @@
     "resources": {
         "media": [
             {
-                "file": "images/download.png",
-                "name": "ScreenShot",
-                "type": "png"
-            },
-            {
-                "file": "images/bluetooth.png",
-                "name": "bluetooth_icon",
-                "type": "png-trans"
-            },
-            {
-                "file": "images/battery.png",
-                "name": "battery_icon",
+                "file": "images/bluetooth_black.png",
+                "name": "bluetooth_dark_icon",
                 "type": "png"
             },
             {
@@ -36,8 +26,23 @@
                 "type": "png"
             },
             {
-                "file": "images/bluetooth_black.png",
-                "name": "bluetooth_dark_icon",
+                "file": "images/battery.png",
+                "name": "battery_icon",
+                "type": "png"
+            },
+            {
+                "file": "images/bluetooth.png",
+                "name": "bluetooth_icon",
+                "type": "png-trans"
+            },
+            {
+                "file": "images/download.png",
+                "name": "ScreenShot",
+                "type": "png"
+            },
+            {
+                "file": "images/charging.png",
+                "name": "CHARGING_DARK_ICON",
                 "type": "png"
             }
         ]
