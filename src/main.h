@@ -47,11 +47,11 @@ struct Weather{
 //the weather on the persist_storage
 static struct Weather weather_buffer;
 
-void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context);
+static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context);
 static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_message_error, void *context);
 
-static void init();
-static void deinit();
+void init();
+void deinit();
 void tick_handler(struct tm *tick_time, TimeUnits units_changed );
 static void bluetooth_handler(bool bluetooth);
 static void battery_handler(BatteryChargeState battery);
