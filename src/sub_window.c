@@ -1,5 +1,4 @@
 #include "sub_window.h"
-#include "main.h"
 
 struct WindowSequence{
   SubWindow* main_window;
@@ -119,12 +118,19 @@ void main_de_init(void* nothing, int none){
   deinit();
 }
 
+void (* func)(void* args, int num_args) = main_init;
+
 int main(void){
-  SubWindow* sub_window = sub_window_create(main_init, main_de_init, NULL, NULL);
-  WindowSequence* sequence = window_sequence_create(NULL, &sub_window, 1, 0);
-  window_sequence_display_next(sequence);
+  //SubWindow* sub_window = sub_window_create(main_init, main_de_init, NULL, NULL);
+  //WindowSequence* sequence = window_sequence_create(NULL, &sub_window, 1, 0);
+  //window_sequence_display_next(sequence);
+  SubWindow* sub_window = malloc(sizeof(SubWindow));
+  *sub_window = default_sub_window;
+  sub_window->init = main_init;
+  sub_window->init(NULL, 0);
   app_event_loop();
-  sub_window_de_display(sequence->sub_window_array[sequence->current_window]);
+  main_de_init(NULL, 0);
+  //sub_window_de_display(sequence->sub_window_array[sequence->current_window]);
 }
 
 

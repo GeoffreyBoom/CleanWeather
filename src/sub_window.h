@@ -1,4 +1,6 @@
+#pragma once
 #include <pebble.h>
+#include "main.h"
 
 struct WindowSequence;
   

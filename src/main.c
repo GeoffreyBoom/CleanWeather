@@ -1,6 +1,31 @@
 #include <pebble.h>
 #include "main.h"
 
+AppSync s_sync;
+uint8_t s_sync_buffer[128];
+struct Weather weather_buffer;
+  
+int light_time = 10;
+
+Window *s_window;
+TextLayer *title_layer;
+TextLayer *time_layer;
+TextLayer *month_layer;
+TextLayer *temperature_layer;
+TextLayer *weekday_layer;
+TextLayer *condition_layer;
+TextLayer *year_layer;
+TextLayer *location_layer;
+TextLayer *update_time_layer;
+
+BitmapLayer *bluetooth_layer = NULL;
+GBitmap *bluetooth_icon = NULL;
+BitmapLayer *battery_layer = NULL;
+GBitmap *battery_icon = NULL;
+BitmapLayer *battery_charging_layer = NULL;
+GBitmap *battery_charging_icon = NULL;
+int battery_level = 10;
+
 void init(void) {
 
   show_window();
@@ -39,7 +64,7 @@ void deinit(void) {
   bitmap_layer_destroy(bluetooth_layer);
 }
 
-static void bluetooth_handler(bool bluetooth){
+void bluetooth_handler(bool bluetooth){
   if(bluetooth){
     bluetooth_icon = gbitmap_create_with_resource(RESOURCE_ID_bluetooth_dark_icon);
     bluetooth_layer = bitmap_layer_create(GRect(125+6,2,8,13));
@@ -77,11 +102,11 @@ void request_weather(void){
   
 }
 
-static void weather_callback(void* data){
+void weather_callback(void* data){
   request_weather();
 }
 
-static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_message_error, void *context) {
+void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_message_error, void *context) {
   // An error occured!
   APP_LOG(APP_LOG_LEVEL_ERROR, "sync error!");
   switch (app_message_error) {
@@ -106,13 +131,13 @@ static void sync_error_handler(DictionaryResult dict_error, AppMessageResult app
   }
 }
 
-static void light_off(void* data){
+void light_off(void* data){
   set_text_title("CleanWeather");
   light_enable(false);
 }
 
 
-static void shake_handler(AccelAxisType axis, int32_t direction){
+void shake_handler(AccelAxisType axis, int32_t direction){
   light_enable(true);
   app_timer_register(1000*light_time, light_off, NULL);
   set_text_title("Light!");
@@ -120,7 +145,7 @@ static void shake_handler(AccelAxisType axis, int32_t direction){
 
 
 
-static void setup_app_sync(){
+void setup_app_sync(){
   // Setup AppSync
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
   
@@ -150,12 +175,12 @@ static void setup_app_sync(){
   app_sync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values, ARRAY_LENGTH(initial_values), sync_changed_handler, sync_error_handler, NULL);
 }
 
-static void start_weather_timer(void* data){
+void start_weather_timer(void* data){
   request_weather();
   app_timer_register(1000*60*10, start_weather_timer, NULL);
 }
 
-static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context) {
+void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context) {
   // Update the TextLayer output
   static char s_city_buffer[32];
   static char s_temperature_buffer[5];
@@ -185,7 +210,7 @@ static void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, con
   tick_handler(NULL, MINUTE_UNIT);
 }
 
-static void draw_battery_power(Layer *layer, GContext *ctx) {
+void draw_battery_power(Layer *layer, GContext *ctx) {
   graphics_draw_bitmap_in_rect(ctx, battery_icon, layer_get_bounds(layer));
   int top = 3;
   int left = 4;
@@ -197,7 +222,7 @@ static void draw_battery_power(Layer *layer, GContext *ctx) {
   }
 }
 
-static void battery_handler(BatteryChargeState battery){
+void battery_handler(BatteryChargeState battery){
   float percent = battery.charge_percent;
   int top = 4;
   int left = 5;
@@ -282,7 +307,7 @@ static GFont s_res_gothic_24_bold;
 static GFont s_res_bitham_30_black;
 
 
-static void initialise_ui(void) {
+void initialise_ui(void) {
   s_window = window_create();
   window_set_background_color(s_window, GColorBlack);
   window_set_fullscreen(s_window, true);
@@ -358,7 +383,7 @@ static void initialise_ui(void) {
   layer_add_child(window_get_root_layer(s_window), (Layer *)weekday_layer);
 }
 
-static void destroy_ui(void) {
+void destroy_ui(void) {
   window_destroy(s_window);
   text_layer_destroy(title_layer);
   text_layer_destroy(time_layer);
@@ -371,39 +396,39 @@ static void destroy_ui(void) {
   text_layer_destroy(update_time_layer);
 }
 
-static void handle_window_unload(Window* window) {
+void handle_window_unload(Window* window) {
   destroy_ui();
 }
 
-static void set_text_title(char* title){
+void set_text_title(char* title){
   text_layer_set_text(title_layer, title);
 }
 
 //time functions
-static void set_text_year(char* year){
+void set_text_year(char* year){
   text_layer_set_text(year_layer, year);
 }
-static void set_text_month(char* month){
+void set_text_month(char* month){
   text_layer_set_text(month_layer, month);
 }
-static void set_text_weekday(char* weekday){
+void set_text_weekday(char* weekday){
   text_layer_set_text(weekday_layer, weekday);
 }
-static void set_text_time(char* time){
+void set_text_time(char* time){
   text_layer_set_text(time_layer, time);
 }
 
 //weather functions
- void set_text_temperature(char* temperature){
+void set_text_temperature(char* temperature){
   text_layer_set_text(temperature_layer, temperature);
 }
- void set_text_condition(char* condition){
+void set_text_condition(char* condition){
   text_layer_set_text(condition_layer, condition);
 }
- void set_text_location(char* location){
+void set_text_location(char* location){
   text_layer_set_text(location_layer, location);
 }
-static void set_text_update_time(char* update_time){
+void set_text_update_time(char* update_time){
   text_layer_set_text(update_time_layer, update_time);
 }
 
