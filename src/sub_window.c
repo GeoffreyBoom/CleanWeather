@@ -19,7 +19,7 @@ SubWindow* sub_window_create(void (* init)(void* args, int num_args),
                              void (* de_init)(void* args, int num_args), 
                              void (* service_subscribe)(void* args, int num_args),
                              void (* service_unsubscribe) (void* args, int num_args)){
-  SubWindow* sub_window = malloc(sizeof(SubWindow*));
+  SubWindow* sub_window = malloc(sizeof(SubWindow));
   *sub_window = default_sub_window;
   sub_window->init = init;
   sub_window->de_init = de_init;
@@ -98,7 +98,7 @@ void sub_window_de_display(SubWindow* sub_window){
 }
 
 void window_sequence_display_next(WindowSequence* sequence){
-  sequence->current_window = sequence->current_window+1%sequence->num_sub_windows;
+  sequence->current_window = (sequence->current_window+1)%sequence->num_sub_windows;
   int previous_index = sequence->current_window-1;
   if(previous_index == -1){
     previous_index = sequence->num_sub_windows-1;
@@ -110,6 +110,7 @@ void window_sequence_display_next(WindowSequence* sequence){
   sub_window_display(sequence->sub_window_array[sequence->current_window]);
 }
 
+//EXAMPLE CODE//
 
 void main_init(void* nothing, int none){
   init();
@@ -118,19 +119,12 @@ void main_de_init(void* nothing, int none){
   deinit();
 }
 
-void (* func)(void* args, int num_args) = main_init;
-
 int main(void){
-  //SubWindow* sub_window = sub_window_create(main_init, main_de_init, NULL, NULL);
-  //WindowSequence* sequence = window_sequence_create(NULL, &sub_window, 1, 0);
-  //window_sequence_display_next(sequence);
-  SubWindow* sub_window = malloc(sizeof(SubWindow));
-  *sub_window = default_sub_window;
-  sub_window->init = main_init;
-  sub_window->init(NULL, 0);
+  SubWindow* sub_window = sub_window_create(main_init, main_de_init, NULL, NULL);
+  WindowSequence* sequence = window_sequence_create(NULL, &sub_window, 1, 0);
+  window_sequence_display_next(sequence);
   app_event_loop();
-  main_de_init(NULL, 0);
-  //sub_window_de_display(sequence->sub_window_array[sequence->current_window]);
+  sub_window_de_display(sequence->sub_window_array[sequence->current_window]);
 }
 
 
