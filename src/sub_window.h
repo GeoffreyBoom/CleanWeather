@@ -1,6 +1,7 @@
 #pragma once
 #include <pebble.h>
 #include "main.h"
+#include "weather_neat.h"
 
 struct WindowSequence;
   

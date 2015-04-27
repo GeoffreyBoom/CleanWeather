@@ -1,4 +1,5 @@
 #include "sub_window.h"
+#include <stdio.h>
 
 struct WindowSequence{
   SubWindow* main_window;
@@ -43,8 +44,7 @@ WindowSequence* window_sequence_create(SubWindow* main_window ,SubWindow** sub_w
   sequence->main_window = main_window;
   sequence->sub_window_array = sub_window_array;
   sequence->num_sub_windows = num_sub_windows;
-  //initialized at initial-1 so that display_next can work.
-  sequence->current_window = initial_sub_window-1;
+  sequence->current_window = initial_sub_window;
   return sequence;
 }
 
@@ -104,10 +104,22 @@ void window_sequence_display_next(WindowSequence* sequence){
     previous_index = sequence->num_sub_windows-1;
   }
   SubWindow* previous_window = sequence->sub_window_array[previous_index];
-  if(previous_window->displayed==true){
+  if(previous_window->displayed==true){  
     sub_window_de_display(previous_window);
+    printf("%i <- current window previous window-> %i",sequence->current_window, previous_index);
   }
   sub_window_display(sequence->sub_window_array[sequence->current_window]);
+}
+
+void window_sequence_display_initial(WindowSequence* sequence){
+  if(!sequence->main_window->displayed){
+    sub_window_display(sequence->main_window);
+    (sequence->main_window->displayed) = true;
+  }
+  if(!(sequence->sub_window_array[sequence->current_window])->displayed){
+    sub_window_display(sequence->sub_window_array[sequence->current_window]);
+    (sequence->sub_window_array[sequence->current_window])->displayed= true;
+  }
 }
 
 //EXAMPLE CODE//
@@ -119,17 +131,31 @@ void main_de_init(void* nothing, int none){
   deinit();
 }
 
+void weather_init(void* nothing, int none){
+  weather_neat_init();
+}
+
+void weather_deinit(void* nothing, int none){
+  weather_neat_deinit();
+}
+void test_init(void* nothing, int none){
+
+}
+void test_deinit(void* nothing, int none){
+  
+}
+
 int main(void){
-  SubWindow* sub_window = sub_window_create(main_init, main_de_init, NULL, NULL);
-  WindowSequence* sequence = window_sequence_create(NULL, &sub_window, 1, 0);
+  
+  SubWindow*     window = sub_window_create(main_init, main_de_init, NULL, NULL);
+  SubWindow* sub_window = sub_window_create(weather_init, weather_deinit, NULL, NULL);
+  SubWindow* sub_window2 = sub_window_create(test_init, test_init, NULL, NULL);
+  SubWindow** windows = malloc(sizeof(SubWindow*)*2);
+  windows[1] = sub_window;
+  windows[0] = sub_window2;
+  WindowSequence* sequence = window_sequence_create(window, windows, 2, 0);
+  window_sequence_display_initial(sequence);
   window_sequence_display_next(sequence);
   app_event_loop();
   sub_window_de_display(sequence->sub_window_array[sequence->current_window]);
 }
-
-
-
-
-
-
-
