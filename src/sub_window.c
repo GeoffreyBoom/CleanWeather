@@ -1,20 +1,19 @@
 #include "sub_window.h"
 #include <stdio.h>
 
-struct WindowSequence{
-  SubWindow* main_window;
-  SubWindow** sub_window_array;
-  int num_sub_windows;
-  int current_window;
-}default_sequence = {NULL, NULL, 0,-1};
-  
-struct SubWindow{
-  void (* init)(void* args, int num_args);
-  void (* de_init)(void* args, int num_args);
-  void (* service_subscribe)(void* args, int num_args);
-  void (* service_unsubscribe) (void* args, int num_args);
-  bool displayed;
-}default_sub_window = {NULL,NULL,NULL,NULL, false};
+MultiWindow    default_multi_window = {NULL,NULL,NULL,NULL,MINUTE_UNIT,0,0,0,false,false,false};
+WindowSequence default_sequence     = {NULL, NULL, 0,-1};
+SubWindow      default_sub_window   = {NULL,NULL,NULL,NULL, false};
+
+//retrieves the multi_window singleton.
+MultiWindow* get_multi_window(){
+  static MultiWindow* multi_window = NULL;
+  if(multi_window == NULL){
+    multi_window = malloc(sizeof(MultiWindow));
+    *multi_window = default_multi_window;
+  }
+  return multi_window;
+}
 
 SubWindow* sub_window_create(void (* init)(void* args, int num_args),
                              void (* de_init)(void* args, int num_args), 
@@ -121,6 +120,8 @@ void window_sequence_display_initial(WindowSequence* sequence){
     (sequence->sub_window_array[sequence->current_window])->displayed= true;
   }
 }
+
+
 
 //EXAMPLE CODE//
 

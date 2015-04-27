@@ -2,6 +2,7 @@
 #pragma once
 #include "shared.h"
 #include "window.h"
+#include "multi_window_subscription.h"
 
 
 //a static buffer for loading and storing in memory

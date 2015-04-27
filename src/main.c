@@ -20,7 +20,7 @@ void init(void) {
   show_window();
   
   // Begin Clock Ticking
-  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+  multi_window_tick_service_subscribe(MINUTE_UNIT, tick_handler);
   
   //begin bluetooth service
   bluetooth_connection_service_subscribe(bluetooth_handler);

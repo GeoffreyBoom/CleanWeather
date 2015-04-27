@@ -1,5 +1,6 @@
 #include <pebble.h>
 #include "weather_neat.h"
+#include "multi_window_subscription.h"
 
 AppSync s_sync;
 uint8_t s_sync_buffer[128];
@@ -21,7 +22,7 @@ void weather_neat_init(void) {
   setup_app_sync();
   
   // begin DT counting
-  //tick_timer_service_subscribe(MINUTE_UNIT, weather_neat_tick_handler);
+  multi_window_tick_service_subscribe(MINUTE_UNIT, weather_neat_tick_handler);
   
   //register shake handler
   accel_tap_service_subscribe(shake_handler);
@@ -33,8 +34,7 @@ void weather_neat_init(void) {
 
 void weather_neat_deinit(void) {
   weather_neat_destroy_ui();
-  //window_destroy(s_main_window);
-  bluetooth_connection_service_unsubscribe();
+  
   // Finish using AppSync
   app_sync_deinit(&s_sync);
 }
