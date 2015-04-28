@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include <stdio.h>
 #include "main.h"
 
 TextLayer *title_layer;
@@ -20,15 +21,15 @@ void init(void) {
   show_window();
   
   // Begin Clock Ticking
-  multi_window_tick_service_subscribe(MINUTE_UNIT, tick_handler);
+  multi_window_tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
   
   //begin bluetooth service
-  bluetooth_connection_service_subscribe(bluetooth_handler);
+  multi_window_bluetooth_connection_service_subscribe(bluetooth_handler);
   //initializing bluetooth state
   bluetooth_handler(bluetooth_connection_service_peek());
   
   //begin battery service
-  battery_state_service_subscribe(battery_handler);
+  multi_window_battery_state_service_subscribe(battery_handler);
   //initializing battery
   battery_handler(battery_state_service_peek());
 }
@@ -46,19 +47,25 @@ void deinit(void) {
 void bluetooth_handler(bool bluetooth){
   Window* s_window = get_window();
   if(bluetooth){
-    bluetooth_icon = gbitmap_create_with_resource(RESOURCE_ID_bluetooth_dark_icon);
-    bluetooth_layer = bitmap_layer_create(GRect(125+6,2,8,13));
+    if(bluetooth_icon == NULL){
+      bluetooth_icon = gbitmap_create_with_resource(RESOURCE_ID_bluetooth_dark_icon);
+    }
+    if(bluetooth_layer == NULL){
+      bluetooth_layer = bitmap_layer_create(GRect(125+6,2,8,13));
+    }
     bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_icon);
     layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(bluetooth_layer));
   }
   else{
+    printf("bluetooth off");
     if(bluetooth_layer != NULL){
+      layer_remove_from_parent(bitmap_layer_get_layer(bluetooth_layer));
       bitmap_layer_destroy(bluetooth_layer);
       bluetooth_layer = NULL;
     }
     if(bluetooth_icon != NULL){
-      gbitmap_destroy(bluetooth_icon);
-      bluetooth_icon = NULL;
+      //gbitmap_destroy(bluetooth_icon);
+      //bluetooth_icon = NULL;
     }
   }
 }
@@ -98,21 +105,27 @@ void battery_handler(BatteryChargeState battery){
   layer_mark_dirty(bitmap_layer_get_layer(battery_layer));
   if (battery.is_charging){
     if(battery_charging_icon == NULL|| battery_charging_layer){
-      battery_charging_icon = gbitmap_create_with_resource(RESOURCE_ID_CHARGING_DARK_ICON);
-      battery_charging_layer = bitmap_layer_create(GRect(125-6,2,7,14));
+      if(battery_charging_icon == NULL){
+        battery_charging_icon = gbitmap_create_with_resource(RESOURCE_ID_CHARGING_DARK_ICON);
+      }
+      if(battery_charging_layer == NULL){
+        battery_charging_layer = bitmap_layer_create(GRect(125-6,2,7,14));
+      }
       bitmap_layer_set_compositing_mode(battery_charging_layer ,GCompOpAnd);
       bitmap_layer_set_bitmap(battery_charging_layer, battery_charging_icon);
       layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(battery_charging_layer));
     }
   }
   else {
+    printf("charger off");
     if(battery_charging_layer != NULL){
+      layer_remove_from_parent(bitmap_layer_get_layer(battery_charging_layer));
       bitmap_layer_destroy(battery_charging_layer);
       battery_charging_layer = NULL;
     }
     if(battery_charging_icon != NULL){
-      gbitmap_destroy(battery_charging_icon);
-      battery_charging_icon = NULL;
+      //gbitmap_destroy(battery_charging_icon);
+      //battery_charging_icon = NULL;
     }
   }
 }

@@ -26,10 +26,12 @@ struct MultiWindow{
   TickHandler* tick_handlers;
   BluetoothConnectionHandler* bluetooth_connection_handlers;
   BatteryStateHandler* battery_state_handlers;
+  AccelTapHandler* tap_handlers;
   TimeUnits time_units;
   int number_tick_handlers;
   int number_bluetooth_handlers;
   int number_battery_handlers;
+  int number_tap_handlers;
   bool tick_in_use;
   bool bluetooth_in_use;
   bool battery_in_use;

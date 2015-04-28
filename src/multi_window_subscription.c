@@ -1,6 +1,15 @@
 #include <pebble.h>
 #include "multi_window_subscription.h"
 #include "stdio.h"
+enum handler_types{
+  TICK = 0,
+  BLUETOOTH=1,
+  BATTERY=2,
+  TAP=3
+};
+
+typedef void (*Function)();
+void add_handler(Function** pointer_to_handlers, Function new_handler, int number_handlers, int type);
 
 struct TickSubscription{
   TimeUnits tick_units;
@@ -13,7 +22,7 @@ void tick_service_subscribe_callback(void* tick_sub){
   tick_subscription.tick_units = ts->tick_units;
   tick_subscription.tick_handler = ts->tick_handler;
   free(ts);
-  multi_window_tick_service_subscribe(tick_subscription.tick_units, tick_subscription.tick_handler);
+  multi_window_tick_timer_service_subscribe(tick_subscription.tick_units, tick_subscription.tick_handler);
 }
 
 void multi_window_tick_handler(struct tm *tick_time, TimeUnits units_changed){
@@ -29,7 +38,21 @@ void multi_window_bluetooth_handler(bool bluetooth){
   }
 }
 
-void multi_window_tick_service_subscribe(TimeUnits tick_units, TickHandler tick_handler){
+void multi_window_battery_handler(BatteryChargeState charge){
+  MultiWindow* multi_window = get_multi_window();
+  for(int i = 0; i < multi_window->number_battery_handlers; i++){
+    multi_window->battery_state_handlers[i](charge);
+  }
+}
+
+void multi_window_tap_handler(AccelAxisType axis, int32_t direction){
+  MultiWindow* multi_window = get_multi_window();
+  for(int i = 0; i < multi_window->number_tap_handlers; i++){
+    multi_window->tap_handlers[i](axis, direction);
+  }
+}
+
+void multi_window_tick_timer_service_subscribe(TimeUnits tick_units, TickHandler tick_handler){
   MultiWindow* multi_window = get_multi_window();
   //assuring that the tick service subscription won't be disturbed
   if(multi_window->tick_in_use){
@@ -64,6 +87,7 @@ void multi_window_tick_service_subscribe(TimeUnits tick_units, TickHandler tick_
   }
 }
 
+//todo: implement synchronization for the other types of handlers.
 void multi_window_bluetooth_connection_service_subscribe(BluetoothConnectionHandler BT_handler){
   MultiWindow* multi_window = get_multi_window();
   multi_window->number_bluetooth_handlers+=1;
@@ -87,6 +111,7 @@ void multi_window_bluetooth_connection_service_subscribe(BluetoothConnectionHand
 void multi_window_battery_state_service_subscribe(BatteryStateHandler BS_handler){
   MultiWindow* multi_window = get_multi_window();
   multi_window->number_battery_handlers+=1;
+
   int number_handlers = multi_window->number_battery_handlers;
   BatteryStateHandler* old_handlers = multi_window->battery_state_handlers;    
   BatteryStateHandler* new_handlers = malloc(sizeof(TickHandler)*(number_handlers));
@@ -98,7 +123,18 @@ void multi_window_battery_state_service_subscribe(BatteryStateHandler BS_handler
   multi_window->battery_state_handlers = new_handlers;
   
   if(old_handlers == NULL){
-    //battery_state_service_subscribe(multi_window->time_units,multi_window_tick_handler);
+    battery_state_service_subscribe(multi_window_battery_handler);
   }
   free(old_handlers);
 }
+
+void add_handler(Function** pointer_to_handlers, Function new_handler, int number_handlers, int type){
+  Function* new_handlers = malloc(sizeof(Function)*(number_handlers));
+  for(int i = 0; i < number_handlers-1; i++){
+    new_handlers[i] = (*pointer_to_handlers)[i];
+  }
+  new_handlers[number_handlers-1] = new_handler;
+  *pointer_to_handlers = new_handlers;
+}
+
+

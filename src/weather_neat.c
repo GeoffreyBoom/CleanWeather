@@ -22,7 +22,7 @@ void weather_neat_init(void) {
   setup_app_sync();
   
   // begin DT counting
-  multi_window_tick_service_subscribe(MINUTE_UNIT, weather_neat_tick_handler);
+  multi_window_tick_timer_service_subscribe(MINUTE_UNIT, weather_neat_tick_handler);
   
   //register shake handler
   accel_tap_service_subscribe(shake_handler);

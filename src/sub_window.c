@@ -1,7 +1,7 @@
 #include "sub_window.h"
 #include <stdio.h>
 
-MultiWindow    default_multi_window = {NULL,NULL,NULL,NULL,MINUTE_UNIT,0,0,0,false,false,false};
+MultiWindow    default_multi_window = {NULL,NULL,NULL,NULL,NULL,MINUTE_UNIT,0,0,0,0,false,false,false};
 WindowSequence default_sequence     = {NULL, NULL, 0,-1};
 SubWindow      default_sub_window   = {NULL,NULL,NULL,NULL, false};
 
