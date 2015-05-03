@@ -3,7 +3,7 @@
 #include "multi_window_subscription.h"
 
 AppSync s_sync;
-uint8_t s_sync_buffer[128];
+uint8_t s_sync_buffer[256];
 struct Weather weather_buffer;
 
 TextLayer *temperature_layer;
@@ -107,13 +107,14 @@ void setup_app_sync(){
     strcpy(weather_buffer.location, "NULL");
     strcpy(weather_buffer.temperature, "NULL°C");
     strcpy(weather_buffer.condition, "NULL");
-    weather_buffer.time = time(NULL);
+    weather_buffer.time = 100;
     persist_write_data(WEATHER_DATA_LOCATION, &weather_buffer, sizeof(struct Weather));
   }
   if(!(persist_read_data(CONFIGURATION_LOCATION, &light_time, sizeof(light_time)) != E_DOES_NOT_EXIST)){
     light_time=6;
   }
   Tuplet initial_values[] = {
+    TupletInteger(WEATHER_REQUEST_KEY, 0),
     TupletCString(WEATHER_CITY_KEY, weather_buffer.location),
     TupletCString(WEATHER_TEMPERATURE_KEY, weather_buffer.temperature),
     TupletCString(WEATHER_CONDITION_KEY, weather_buffer.condition),
@@ -151,8 +152,16 @@ void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tupl
       break;
     case LIGHT_TIME_KEY:
       light_time= (int)new_tuple->value->int32;
+      break;
+    case WEATHER_REQUEST_KEY:
+      printf("%i",(int)new_tuple->value->int32);
+      if((int)new_tuple->value->int32){
+        printf("shouldnt be 0: %i",(int)new_tuple->value->int32);
+        weather_buffer.time = time(NULL);
+      }
+      break;
+      
   }
-  weather_buffer.time = time(NULL);
   persist_write_data(WEATHER_DATA_LOCATION, &weather_buffer, sizeof(struct Weather));
   persist_write_data(CONFIGURATION_LOCATION, &light_time, sizeof(light_time));
   weather_neat_tick_handler(NULL, MINUTE_UNIT);

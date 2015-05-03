@@ -104,7 +104,7 @@ void battery_handler(BatteryChargeState battery){
   }
   layer_mark_dirty(bitmap_layer_get_layer(battery_layer));
   if (battery.is_charging){
-    if(battery_charging_icon == NULL|| battery_charging_layer){
+    if(battery_charging_icon == NULL|| battery_charging_layer == NULL){
       if(battery_charging_icon == NULL){
         battery_charging_icon = gbitmap_create_with_resource(RESOURCE_ID_CHARGING_DARK_ICON);
       }
@@ -148,7 +148,7 @@ void tick_handler(struct tm *tick_time, TimeUnits units_changed ){
   }
   
   //set month
-  strftime(month,   sizeof("--- 00"),   "%b %d"    , tick_time);
+  strftime(month,   sizeof("--- 00"),   "%b %d", tick_time);
   
   //set weekday
   strftime(weekday, sizeof("---"),   "%a"    , tick_time);
@@ -195,7 +195,7 @@ void initialise_ui(void) {
   layer_add_child(window_get_root_layer(s_window), (Layer *)time_layer);
   
   // month_layer
-  month_layer = text_layer_create(GRect(90, 14, 51, 30));
+  month_layer = text_layer_create(GRect(85, 14, 60, 30));
   text_layer_set_background_color(month_layer, GColorClear);
   text_layer_set_text_color(month_layer, GColorWhite);
   text_layer_set_text(month_layer, "apr 23");

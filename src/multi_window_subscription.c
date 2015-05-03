@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include <stdio.h>
 #include "multi_window_subscription.h"
 #include "stdio.h"
 enum handler_types{
@@ -65,23 +66,11 @@ void multi_window_tick_timer_service_subscribe(TimeUnits tick_units, TickHandler
     app_timer_register(890,tick_service_subscribe_callback,(void*)ts);
   }
   else{
-    printf("setting up a time listener\n");
     multi_window->tick_in_use = true;
-    int number_tick_handlers = multi_window->number_tick_handlers;
     
-    TickHandler* old_tick_handlers = multi_window->tick_handlers;
-    TickHandler* new_tick_handlers = malloc(sizeof(TickHandler)*(number_tick_handlers+1));
-    for(int i = 0; i < number_tick_handlers; i++){
-      new_tick_handlers[i] = old_tick_handlers[i];
-    }
-    new_tick_handlers[number_tick_handlers] = tick_handler;
-    multi_window->tick_handlers = new_tick_handlers;
-    multi_window->number_tick_handlers += 1;
-    
-    if(old_tick_handlers == NULL){
-      tick_timer_service_subscribe(multi_window->time_units,multi_window_tick_handler);
-    }
-    free(old_tick_handlers);
+    printf("setting up a time listener\n");
+    multi_window->number_tick_handlers+=1;
+    add_handler((Function**)&(multi_window->tick_handlers), (Function) tick_handler, multi_window->number_tick_handlers, TICK);
     
     multi_window->tick_in_use = false;
   }
@@ -91,50 +80,35 @@ void multi_window_tick_timer_service_subscribe(TimeUnits tick_units, TickHandler
 void multi_window_bluetooth_connection_service_subscribe(BluetoothConnectionHandler BT_handler){
   MultiWindow* multi_window = get_multi_window();
   multi_window->number_bluetooth_handlers+=1;
-  int number_handlers = multi_window->number_bluetooth_handlers;
-  BluetoothConnectionHandler* old_handlers = multi_window->bluetooth_connection_handlers;
-  BluetoothConnectionHandler* new_handlers = malloc(sizeof(TickHandler)*(number_handlers));
-  for(int i = 0; i < number_handlers-1; i++){
-    new_handlers[i] = old_handlers[i];
-  }
-  
-  new_handlers[number_handlers-1] = BT_handler;
-  multi_window->bluetooth_connection_handlers = new_handlers;
-
-  if(old_handlers == NULL){
-    bluetooth_connection_service_subscribe(multi_window_bluetooth_handler);
-  }
-  free(old_handlers);
-
+  add_handler((Function**)&(multi_window->bluetooth_connection_handlers), (Function) BT_handler, multi_window->number_bluetooth_handlers, BLUETOOTH);
 }
 
 void multi_window_battery_state_service_subscribe(BatteryStateHandler BS_handler){
   MultiWindow* multi_window = get_multi_window();
   multi_window->number_battery_handlers+=1;
+  add_handler(&(multi_window->battery_state_handlers), BS_handler, multi_window->number_battery_handlers, BATTERY);
+}
 
-  int number_handlers = multi_window->number_battery_handlers;
-  BatteryStateHandler* old_handlers = multi_window->battery_state_handlers;    
-  BatteryStateHandler* new_handlers = malloc(sizeof(TickHandler)*(number_handlers));
+
+void add_handler(Function** pointer_to_handlers, Function new_handler, int number_handlers, int type){
+  printf("adding handler\n");
+  Function* old_handlers = *pointer_to_handlers;
+  Function* new_handlers = malloc(sizeof(Function)*(number_handlers));
   for(int i = 0; i < number_handlers-1; i++){
+    printf("copying old handler\n");
     new_handlers[i] = old_handlers[i];
   }
+  printf("added old handlers\n");
+  new_handlers[number_handlers-1] = new_handler;
+  *pointer_to_handlers = new_handlers;
 
-  new_handlers[number_handlers-1] = BS_handler;
-  multi_window->battery_state_handlers = new_handlers;
-  
   if(old_handlers == NULL){
-    battery_state_service_subscribe(multi_window_battery_handler);
+    printf("adding multi_listener\n");
+    switch(type){
+      case TICK: tick_timer_service_subscribe(MINUTE_UNIT,multi_window_tick_handler); break;
+      case BLUETOOTH: bluetooth_connection_service_subscribe(multi_window_bluetooth_handler); break;
+      case BATTERY: battery_state_service_subscribe(multi_window_battery_handler); break;
+    }
   }
   free(old_handlers);
 }
-
-void add_handler(Function** pointer_to_handlers, Function new_handler, int number_handlers, int type){
-  Function* new_handlers = malloc(sizeof(Function)*(number_handlers));
-  for(int i = 0; i < number_handlers-1; i++){
-    new_handlers[i] = (*pointer_to_handlers)[i];
-  }
-  new_handlers[number_handlers-1] = new_handler;
-  *pointer_to_handlers = new_handlers;
-}
-
-
