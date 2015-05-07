@@ -20,3 +20,7 @@ struct Weather{
   char condition[32];
   time_t time;
 };
+
+struct Configuration{
+  int light_time;
+};

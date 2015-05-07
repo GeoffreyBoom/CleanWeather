@@ -160,7 +160,6 @@ void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tupl
         weather_buffer.time = time(NULL);
       }
       break;
-      
   }
   persist_write_data(WEATHER_DATA_LOCATION, &weather_buffer, sizeof(struct Weather));
   persist_write_data(CONFIGURATION_LOCATION, &light_time, sizeof(light_time));

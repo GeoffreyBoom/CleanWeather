@@ -6,7 +6,8 @@ enum handler_types{
   TICK = 0,
   BLUETOOTH=1,
   BATTERY=2,
-  TAP=3
+  TAP=3,
+  SYNC=4
 };
 
 typedef void (*Function)();
@@ -89,6 +90,11 @@ void multi_window_battery_state_service_subscribe(BatteryStateHandler BS_handler
   add_handler(&(multi_window->battery_state_handlers), BS_handler, multi_window->number_battery_handlers, BATTERY);
 }
 
+void multi_window_tap_service_subscribe(AppSyncTupleChangedCallback sync_handler){
+  MultiWindow* multi_window = get_multi_window();
+  multi_window->number_sync_handlers+=1;
+  add_handler(&(multi_window->sync_handlers), sync_handler, multi_window->number_sync_handlers, SYNC);
+}
 
 void add_handler(Function** pointer_to_handlers, Function new_handler, int number_handlers, int type){
   printf("adding handler\n");
