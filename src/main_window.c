@@ -1,6 +1,4 @@
 #include <pebble.h>
-
-#include <pebble.h>
 #include <stdio.h>
 #include "main_window.h"
 
@@ -41,7 +39,7 @@ void deinit(void) {
   // Destroy main Window
   hide_window();
   //window_destroy(s_main_window);
-  bluetooth_connection_service_unsubscribe();
+  multi_window_bluetooth_connection_service_unsubscribe(bluetooth_handler);
   // Finish using AppSync
   gbitmap_destroy(bluetooth_icon);
   bitmap_layer_destroy(bluetooth_layer);

@@ -27,11 +27,11 @@ void window_sequence_delete(WindowSequence* sequence){
 
 void window_sequence_add_sub_window(SubWindow* sub_window, WindowSequence* sequence){
   //new size is one larger
-  int new_size = sequence->num_sub_windows+1;
+  int new_size = sequence->num_sub_windows+=1;
   SubWindow** new_array = malloc(sizeof(SubWindow) * new_size);
   
   //copy over values from old array to new array
-  for(int i = 0; i < sequence->num_sub_windows; i++){
+  for(int i = 0; i < sequence->num_sub_windows-1; i++){
     new_array[i] = sequence->sub_window_array[i];
     sequence->sub_window_array[i] =NULL; 
   }
