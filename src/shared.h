@@ -24,3 +24,5 @@ struct Weather{
 struct Configuration{
   int light_time;
 };
+
+typedef struct Weather Weather;

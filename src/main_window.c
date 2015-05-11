@@ -17,6 +17,8 @@ BitmapLayer *battery_charging_layer = NULL;
 GBitmap *battery_charging_icon = NULL;
 int battery_level = 10;
 
+void vibecreate(uint32_t segments[], int num_vibes);
+
 void init(void) {
 
   show_window();
@@ -45,9 +47,15 @@ void deinit(void) {
   bitmap_layer_destroy(bluetooth_layer);
 }
 
+bool bluetooth_disconnect_vibe(){
+  return true;
+}
+
 void bluetooth_handler(bool bluetooth){
+  static bool initiated = false;
   Window* s_window = get_window();
   if(bluetooth){
+    if(initiated == true){vibecreate((uint32_t[]){100,200,100,200}, 2);}
     if(bluetooth_icon == NULL){
       bluetooth_icon = gbitmap_create_with_resource(RESOURCE_ID_bluetooth_dark_icon);
     }
@@ -59,6 +67,7 @@ void bluetooth_handler(bool bluetooth){
   }
   else{
     printf("bluetooth off");
+    if(initiated == true){vibecreate((uint32_t[]){100,200,100,200,100,200}, 3);}
     if(bluetooth_layer != NULL){
       layer_remove_from_parent(bitmap_layer_get_layer(bluetooth_layer));
       bitmap_layer_destroy(bluetooth_layer);
@@ -69,7 +78,18 @@ void bluetooth_handler(bool bluetooth){
       //bluetooth_icon = NULL;
     }
   }
+  initiated = true;
+
 }
+
+void vibecreate(uint32_t segments[], int num_vibes){
+  VibePattern pat = {
+    .durations = segments,
+    .num_segments = num_vibes
+  };
+  vibes_enqueue_custom_pattern(pat);
+}
+
 /*
 int main(void) {
   init();

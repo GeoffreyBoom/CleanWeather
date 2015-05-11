@@ -3,6 +3,8 @@
 
 MultiWindow    default_multi_window = {NULL,NULL,NULL,NULL,NULL,NULL,MINUTE_UNIT,0,0,0,0,0,false,false,false};
 
+int delta_time_shake = 5;
+
 //retrieves the multi_window singleton.
 MultiWindow* get_multi_window(){
   static MultiWindow* multi_window = NULL;
@@ -36,3 +38,22 @@ void multi_window_display_next(){
   window_sequence_display_next(multi_window->window_sequence);
 }
 
+void shake_for_next(AccelAxisType axis, int32_t direction){
+  static time_t timestamp = 0;
+  if(timestamp==0 || !(((timestamp-time(NULL))/1000)<delta_time_shake)){
+    timestamp = time(NULL);
+  }
+  else if(((timestamp-time(NULL))/1000)<delta_time_shake){
+    timestamp = time(NULL);
+    multi_window_display_next();
+  }
+}
+
+void multi_window_shake_for_next(bool enabled){
+  if(enabled){
+    multi_window_accel_tap_service_subscribe(shake_for_next);
+  }
+  else{
+    multi_window_accel_tap_service_unsubscribe(shake_for_next);
+  }
+}

@@ -104,13 +104,19 @@ void multi_window_battery_state_service_subscribe(BatteryStateHandler BS_handler
   multi_window->number_battery_handlers+=1;
 }
 
-void multi_window_tap_service_subscribe(AccelTapHandler tap_handler){
+void multi_window_accel_tap_service_subscribe(AccelTapHandler tap_handler){
   MultiWindow* multi_window = get_multi_window();
   add_handler((Function**)&(multi_window->tap_handlers), (Function)tap_handler, multi_window->number_tap_handlers, TAP);
   multi_window->number_tap_handlers+=1;
 }
 
 //unsubscription functions
+
+void multi_window_tick_timer_service_unsubscribe(TickHandler tick_handler){
+  MultiWindow* multi_window = get_multi_window();
+  remove_handler((Function**)&(multi_window->tick_handlers), (Function) tick_handler, multi_window->number_tick_handlers, TICK);
+  multi_window->number_tick_handlers-=1;
+}
 void multi_window_bluetooth_connection_service_unsubscribe(BluetoothConnectionHandler BT_handler){
   MultiWindow* multi_window = get_multi_window();
   remove_handler((Function**)&(multi_window->bluetooth_connection_handlers), (Function) BT_handler, multi_window->number_bluetooth_handlers, BLUETOOTH);
@@ -123,17 +129,13 @@ void multi_window_battery_state_service_unsubscribe(BatteryStateHandler BS_handl
   multi_window->number_battery_handlers-=1;
 }
 
-void multi_window_tap_service_unsubscribe(AccelTapHandler tap_handler){
+void multi_window_accel_tap_service_unsubscribe(AccelTapHandler tap_handler){
   MultiWindow* multi_window = get_multi_window();
   remove_handler((Function**)&(multi_window->tap_handlers), (Function)tap_handler, multi_window->number_tap_handlers, TAP);
   multi_window->number_tap_handlers-=1;
 }
 
-void multi_window_tick_timer_service_unsubscribe(TimeUnits tick_units, TickHandler tick_handler){
-  MultiWindow* multi_window = get_multi_window();
-  remove_handler((Function**)&(multi_window->tick_handlers), (Function) tick_handler, multi_window->number_tick_handlers, TICK);
-  multi_window->number_tick_handlers-=1;
-}
+
 
 /*
 void multi_window_tap_service_subscribe(AppSyncTupleChangedCallback sync_handler){

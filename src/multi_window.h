@@ -1,7 +1,9 @@
 #pragma once
 #include <pebble.h>
+#include "multi_window_subscription.h"
 #include "sub_window.h"
 #include "window_sequence.h"
+#include "multi_window.h"
 struct MultiWindow;
 
 typedef struct MultiWindow MultiWindow;
@@ -31,3 +33,5 @@ void multi_window_add_sub_window(SubWindow*);
 //void multi_window_remove_sub_window(SubWindow*);
 void multi_window_display_initial();
 void multi_window_display_next();
+
+void multi_window_shake_for_next(bool enabled);

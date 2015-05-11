@@ -2,6 +2,8 @@
 #include "shared.h"
 #include "window.h"
 
+
+
 void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context);
 void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_message_error, void *context);
 
@@ -26,3 +28,7 @@ void set_text_update_time(char*);
 void set_text_title(char* title);
 
 void setup_app_sync();
+
+int* get_light_time();
+
+Weather* get_weather_buffer();
