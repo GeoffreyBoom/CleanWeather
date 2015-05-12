@@ -72,9 +72,11 @@ function get_weather(location){
 
 
 function send_weather(weather){
+  console.log("sending weather");
   var dict = {"WEATHER_CITY_KEY": weather.city,
               "WEATHER_CONDITION_KEY": weather.condition,
-              "WEATHER_TEMPERATURE_KEY": weather.temperature + "°C"
+              "WEATHER_TEMPERATURE_KEY": weather.temperature + "°C",
+              "WEATHER_REQUEST_KEY": 1
   };
   Pebble.sendAppMessage(dict,
     function(e){

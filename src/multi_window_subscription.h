@@ -1,0 +1,11 @@
+#pragma once
+#include "multi_window.h"
+void multi_window_tick_timer_service_subscribe(TimeUnits tick_units, TickHandler tick_handler);
+void multi_window_bluetooth_connection_service_subscribe(BluetoothConnectionHandler BT_handler);
+void multi_window_battery_state_service_subscribe(BatteryStateHandler BS_handler);
+void multi_window_accel_tap_service_subscribe(AccelTapHandler tap_handler);
+
+void multi_window_tick_timer_service_unsubscribe(TickHandler tick_handler);
+void multi_window_bluetooth_connection_service_unsubscribe(BluetoothConnectionHandler BT_handler);
+void multi_window_battery_state_service_unsubscribe(BatteryStateHandler BS_handler);
+void multi_window_accel_tap_service_unsubscribe(AccelTapHandler tap_handler);

@@ -3,7 +3,7 @@
         "LIGHT_TIME_KEY": 5,
         "WEATHER_CITY_KEY": 1,
         "WEATHER_CONDITION_KEY": 3,
-        "WEATHER_REQUEST": 0,
+        "WEATHER_REQUEST_KEY": 0,
         "WEATHER_TEMPERATURE_KEY": 2
     },
     "capabilities": [
