@@ -1,6 +1,9 @@
 #include "main.h"
 #include <stdio.h>
 //EXAMPLE CODE//
+void sync_changed_handler1(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context);
+void sync_changed_handler2(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context);
+
 
 void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_message_error, void *context) {
   // An error occured!
@@ -149,6 +152,7 @@ int main(void){
   multi_window_add_sub_window(sub_window_create(weather_init, weather_deinit, NULL, NULL, NULL));
   
   multi_window_display_initial();
+  //multi_window_display_next();
   //multi_window_display_next();
   /*
   */

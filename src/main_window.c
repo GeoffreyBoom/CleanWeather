@@ -3,6 +3,7 @@
 #include "main_window.h"
 
 
+Layer     *mainLayer;
 TextLayer *title_layer;
 TextLayer *time_layer;
 TextLayer *month_layer;
@@ -42,7 +43,6 @@ void deinit(void) {
   hide_window();
   //window_destroy(s_main_window);
   multi_window_bluetooth_connection_service_unsubscribe(bluetooth_handler);
-  // Finish using AppSync
   gbitmap_destroy(bluetooth_icon);
   bitmap_layer_destroy(bluetooth_layer);
 }
@@ -199,7 +199,7 @@ void initialise_ui(void) {
   layer_add_child(window_get_root_layer(s_window), (Layer *)title_layer);
   
   // time_layer
-  time_layer = text_layer_create(GRect(20, 37, 104, 31));
+  time_layer = text_layer_create(GRect(21, 37, 104, 31));
   text_layer_set_background_color(time_layer, GColorClear);
   text_layer_set_text_color(time_layer, GColorWhite);
   text_layer_set_text(time_layer, "12:12");
@@ -207,6 +207,15 @@ void initialise_ui(void) {
   text_layer_set_font(time_layer, s_res_bitham_30_black);
   layer_add_child(window_get_root_layer(s_window), (Layer *)time_layer);
   
+  GBitmap*     doge_icon    = gbitmap_create_with_resource(RESOURCE_ID_wow_doge);
+  BitmapLayer* doge_layer   = bitmap_layer_create(GRect(4, 46, 20, 20));
+  BitmapLayer* doge_layer_2 = bitmap_layer_create(GRect(120, 46, 20, 20));
+
+  bitmap_layer_set_bitmap(doge_layer, doge_icon);
+  bitmap_layer_set_bitmap(doge_layer_2, doge_icon);
+  layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(doge_layer));
+  layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(doge_layer_2));
+
   // month_layer
   month_layer = text_layer_create(GRect(85, 14, 60, 30));
   text_layer_set_background_color(month_layer, GColorClear);

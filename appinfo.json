@@ -16,6 +16,11 @@
     "resources": {
         "media": [
             {
+                "file": "images/doge.png",
+                "name": "wow_doge",
+                "type": "png"
+            },
+            {
                 "file": "images/bluetooth_black.png",
                 "name": "bluetooth_dark_icon",
                 "type": "png"

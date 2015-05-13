@@ -57,14 +57,23 @@ void multi_window_tap_handler(AccelAxisType axis, int32_t direction){
     multi_window->tap_handlers[i](axis, direction);
   }
 }
-/*
+
 void multi_window_app_sync_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context){
   MultiWindow* multi_window = get_multi_window();
   for(int i = 0; i < multi_window->number_sync_handlers; i++){
     multi_window->sync_handlers[i](key, new_tuple, old_tuple, context);
   }
 }
-*/
+
+void multi_window_appsync_init(struct AppSync * s, 
+                               uint8_t * buffer, 
+                               const uint16_t buffer_size, 
+                               const Tuplet *const keys_and_initial_values, 
+                               const uint8_t count,
+                               void * context){
+  app_sync_init(s, buffer, buffer_size, keys_and_initial_values, count, multi_window_app_sync_handler, NULL, context);
+}
+
 
 
 //subscription functions:
@@ -110,6 +119,12 @@ void multi_window_accel_tap_service_subscribe(AccelTapHandler tap_handler){
   multi_window->number_tap_handlers+=1;
 }
 
+void multi_window_app_sync_service_subscribe(AppSyncTupleChangedCallback change_handler){
+  MultiWindow* multi_window = get_multi_window();
+  add_handler((Function**)&(multi_window->tap_handlers), (Function) change_handler, multi_window->number_tap_handlers, SYNC);
+  multi_window->number_sync_handlers+=1;
+}
+
 //unsubscription functions
 
 void multi_window_tick_timer_service_unsubscribe(TickHandler tick_handler){
@@ -135,15 +150,11 @@ void multi_window_accel_tap_service_unsubscribe(AccelTapHandler tap_handler){
   multi_window->number_tap_handlers-=1;
 }
 
-
-
-/*
-void multi_window_tap_service_subscribe(AppSyncTupleChangedCallback sync_handler){
+void multi_window_app_sync_service_unsubscribe(AppSyncTupleChangedCallback change_handler){
   MultiWindow* multi_window = get_multi_window();
-  add_handler(&(multi_window->sync_handlers), sync_handler, multi_window->number_sync_handlers, SYNC);
-  multi_window->number_sync_handlers+=1;
+  remove_handler((Function**)&(multi_window->tap_handlers), (Function) change_handler, multi_window->number_tap_handlers, SYNC);
+  multi_window->number_sync_handlers-=1;
 }
-*/
 
 //generic code:
 
