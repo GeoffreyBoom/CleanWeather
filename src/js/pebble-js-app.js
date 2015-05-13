@@ -26,10 +26,11 @@ function get_location(){
       get_weather(location);
     },
     function locationError(err) {
-      var location;
-      location.latitude  = "null";
-      location.longitude = "null";
-      location.recent    = false;
+      var location = {
+        latitude  : null,
+        longitude : null,
+        recent    : false
+      };
       get_weather(location);
     },
     {
@@ -49,6 +50,7 @@ function get_weather(location){
       '&units=metric&mode=json';
   }
   else{
+    console.log("long/lat was null");
     URL = 'http://api.openweathermap.org/data/2.5/weather?q=Montreal&units=metric&mode=json'; 
   }
   

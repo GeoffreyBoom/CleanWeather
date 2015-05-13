@@ -90,14 +90,6 @@ void vibecreate(uint32_t segments[], int num_vibes){
   vibes_enqueue_custom_pattern(pat);
 }
 
-/*
-int main(void) {
-  init();
-  app_event_loop();
-  deinit();
-}
-*/
-
 void draw_battery_power(Layer *layer, GContext *ctx) {
   graphics_draw_bitmap_in_rect(ctx, battery_icon, layer_get_bounds(layer));
   int top = 3;

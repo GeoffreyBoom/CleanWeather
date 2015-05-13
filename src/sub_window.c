@@ -1,5 +1,4 @@
 #include "sub_window.h"
-#include <stdio.h>
 
 SubWindow default_sub_window   = {NULL,NULL,NULL,NULL,NULL, false};
 

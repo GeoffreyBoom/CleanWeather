@@ -103,7 +103,6 @@ void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tupl
     case WEATHER_REQUEST_KEY:
       printf("%i",(int)new_tuple->value->int32);
       if((int)new_tuple->value->int32){
-        printf("shouldnt be 0: %i",(int)new_tuple->value->int32);
         weather_buffer->time = time(NULL);
       }
       break;

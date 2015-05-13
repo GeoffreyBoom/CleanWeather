@@ -1,6 +1,8 @@
 #pragma once
 #include <pebble.h>
-
+#include <stdio.h>
+#include "window.h"
+  
 struct SubWindow;
 
 typedef struct SubWindow SubWindow;
