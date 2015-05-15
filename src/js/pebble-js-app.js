@@ -72,7 +72,7 @@ function get_weather(location){
   html.send();
 }
 
-
+var numSends = 0;
 function send_weather(weather){
   console.log("sending weather");
   var dict = {"WEATHER_CITY_KEY": weather.city,
@@ -85,8 +85,10 @@ function send_weather(weather){
       console.out("send successful");
     },
     function(e){
-      var time = Math.floor((Math.random() * 1000) + 1);
-      setTimeout(send_weather(weather), time);
+      if(++numSends < 10){
+        var time = Math.floor((Math.random() * 1000) + 1);
+        setTimeout(send_weather(weather), time);
+      }
     });
 }
 
@@ -100,10 +102,13 @@ Pebble.addEventListener('webviewclosed',
     var configuration = JSON.parse(decodeURIComponent(e.response));
     console.log(decodeURIComponent(e.response));
     console.log(configuration.light_on);
+    console.log(configuration.weather_interval);
     var dict={
-      "LIGHT_TIME_KEY": parseInt(configuration.light_on)
+      "LIGHT_TIME_KEY": parseInt(configuration.light_on),
+      "WEATHER_TIME_KEY": parseInt(configuration.weather_interval)
     };
     console.log('Configuration window returned: ' + dict.LIGHT_TIME_KEY);
+    console.log('Configuration window returned: ' + dict.WEATHER_INTERVAL);
     send_configuration(dict);
 
   }

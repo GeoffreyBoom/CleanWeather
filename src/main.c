@@ -1,9 +1,6 @@
 #include "main.h"
 #include <stdio.h>
 //EXAMPLE CODE//
-void sync_changed_handler1(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context);
-void sync_changed_handler2(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context);
-
 
 void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_message_error, void *context) {
   // An error occured!
@@ -55,17 +52,19 @@ void setup_app_sync(){
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
   
   Weather weather_buffer = *get_weather_buffer();
-  int light_time = *get_light_time();
+  int light_time = get_light_time();
+  int weather_time = get_weather_time();
   
   Tuplet initial_values[] = {
     TupletInteger(WEATHER_REQUEST_KEY, 0),
     TupletCString(WEATHER_CITY_KEY, weather_buffer.location),
     TupletCString(WEATHER_TEMPERATURE_KEY, weather_buffer.temperature),
     TupletCString(WEATHER_CONDITION_KEY, weather_buffer.condition),
-    TupletInteger(LIGHT_TIME_KEY, light_time)
+    TupletInteger(LIGHT_TIME_KEY, light_time),
+    TupletInteger(WEATHER_TIME_KEY, weather_time)
   };
   // Begin using AppSync
-  app_sync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values, ARRAY_LENGTH(initial_values), sync_changed_handler, sync_error_handler, NULL);
+  multi_window_appsync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values, ARRAY_LENGTH(initial_values), NULL);
 }
 
 void start_weather_timer(void* data){
@@ -74,16 +73,17 @@ void start_weather_timer(void* data){
   if(timer){
     app_timer_cancel(timer);
   }
-  timer = app_timer_register(1000*60*10, start_weather_timer, NULL);
+  int weather_time = get_weather_time();
+  timer = app_timer_register(1000*60*weather_time, start_weather_timer, NULL);
 }
 
 void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context) {
+  printf("starting weather sync handler");
   // Update the TextLayer output
   static char s_city_buffer[32];
   static char s_temperature_buffer[5];
   static char s_condition_buffer[32];
   Weather* weather_buffer = get_weather_buffer();
-  int* light_time = get_light_time();
   switch(key){
     case WEATHER_CITY_KEY:
       snprintf(s_city_buffer, sizeof(s_city_buffer), "%s", (char*)new_tuple->value->cstring);
@@ -100,9 +100,6 @@ void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tupl
       strncpy(weather_buffer->condition, s_condition_buffer, sizeof(s_condition_buffer));
       set_text_condition(s_condition_buffer);
       break;
-    case LIGHT_TIME_KEY:
-      *light_time= (int)new_tuple->value->int32;
-      break;
     case WEATHER_REQUEST_KEY:
       printf("%i",(int)new_tuple->value->int32);
       if((int)new_tuple->value->int32){
@@ -111,8 +108,25 @@ void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tupl
       break;
   }
   persist_write_data(WEATHER_DATA_LOCATION, weather_buffer, sizeof(struct Weather));
-  persist_write_data(CONFIGURATION_LOCATION, light_time, sizeof(light_time));
   weather_neat_tick_handler(NULL, MINUTE_UNIT);
+  
+  printf("finished weather sync handler");
+
+}
+
+void configuration_sync_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context){
+  printf("starting configuration sync handler\n");
+  switch(key){
+    printf("key: %i", (int)key);
+    case LIGHT_TIME_KEY:
+      set_light_time((int)new_tuple->value->int32);
+      break;
+    case WEATHER_TIME_KEY:
+      set_weather_time((int)new_tuple->value->int32);
+      break;
+    printf("finished using key");
+  }
+  printf("finished configuration sync handler");
 }
 
 void weather_callback(void* data){
@@ -141,25 +155,28 @@ void test_deinit(void* nothing, int none){
 }
 
 int main(void){
-  
+  //subscribe to appsync handler
+  multi_window_app_sync_service_subscribe(sync_changed_handler);
+  multi_window_app_sync_service_subscribe(configuration_sync_handler);
   // Begin App Sync
   setup_app_sync();  
   // Start Weather Updating
   start_weather_timer(NULL);
-
-  multi_window_set_main_window(sub_window_create(main_init, main_de_init,NULL, NULL, NULL));
-  //multi_window_add_sub_window(sub_window_create(test_init, test_init, NULL, NULL, NULL));
-  multi_window_add_sub_window(sub_window_create(weather_init, weather_deinit, NULL, NULL, NULL));
   
+  multi_window_set_main_window(sub_window_create(main_init, main_de_init,NULL, NULL, NULL));
+  multi_window_add_sub_window(sub_window_create(weather_init, weather_deinit, NULL, NULL, NULL));
+  multi_window_add_sub_window(sub_window_create(test_init, test_init, NULL, NULL, NULL));
+
   multi_window_display_initial();
-  //multi_window_display_next();
-  //multi_window_display_next();
+  multi_window_display_next();
+  multi_window_display_next();
   /*
+  multi_window_shake_for_next(true);
   */
-  //multi_window_shake_for_next(true);
   app_event_loop();
   
   // Finish using AppSync
-  app_sync_deinit(&s_sync);
+  multi_window_app_sync_deinit(&s_sync);
+  multi_window_app_sync_service_unsubscribe(sync_changed_handler);
   //sub_window_de_display(sequence->sub_window_array[sequence->current_window]);
 }

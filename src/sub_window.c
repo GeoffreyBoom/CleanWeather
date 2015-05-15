@@ -39,7 +39,6 @@ void sub_window_display(SubWindow* sub_window){
 void sub_window_de_display(SubWindow* sub_window){
   if(sub_window->de_init != NULL){
     sub_window->de_init(NULL, 0);
-    sub_window->service_unsubscribe(NULL, 0);
   }
   if(sub_window->service_unsubscribe != NULL){
     sub_window->service_unsubscribe(NULL, 0);

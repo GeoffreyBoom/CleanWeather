@@ -42,7 +42,7 @@ void light_off(void* data){
 
 
 void shake_handler(AccelAxisType axis, int32_t direction){
-  int light_time = *get_light_time();
+  int light_time = get_light_time();
   light_enable(true);
   app_timer_register(1000*light_time, light_off, NULL);
   set_text_title("Light!");
@@ -65,15 +65,38 @@ Weather* get_weather_buffer(){
   return weather_buffer;
 }
 
-int* get_light_time(){
-  static int* light_time = NULL;
-  if(!light_time){
-    light_time = malloc(sizeof(int));
-    if(!(persist_read_data(CONFIGURATION_LOCATION, light_time, sizeof(light_time)) != E_DOES_NOT_EXIST)){
-      *light_time=6;
+Configuration* get_configuration(){
+  static Configuration* config = NULL;
+  if(!config){
+    config = malloc(sizeof(Configuration));
+    if((persist_read_data(CONFIGURATION_LOCATION, config, sizeof(config)) == E_DOES_NOT_EXIST)){
+      config->light_time = 6;
+      config->weather_time = 10;
     }
   }
-  return light_time;
+  return config;
+}
+
+int get_light_time(){
+  Configuration* config = get_configuration();
+  return config->light_time;
+}
+
+void set_light_time(int time){
+  Configuration* config = get_configuration();
+  config->light_time = time;
+  persist_write_data(CONFIGURATION_LOCATION, config, sizeof(Configuration));
+}
+
+int get_weather_time(){
+  Configuration* config = get_configuration();
+  return config->weather_time;
+}
+
+void set_weather_time(int time){
+  Configuration* config = get_configuration();
+  config->weather_time = time;
+  persist_write_data(CONFIGURATION_LOCATION, config, sizeof(Configuration));
 }
 
 void weather_neat_tick_handler(struct tm *tick_time, TimeUnits units_changed ){

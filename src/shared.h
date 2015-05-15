@@ -6,7 +6,8 @@ enum weather_key{
   WEATHER_TEMPERATURE_KEY = 2,
   WEATHER_CONDITION_KEY = 3,
   WEATHER_TIME_STAMP = 4,
-  LIGHT_TIME_KEY = 5
+  LIGHT_TIME_KEY = 5,
+  WEATHER_TIME_KEY = 6
 };
 
 enum storage_key{
@@ -23,6 +24,9 @@ struct Weather{
 
 struct Configuration{
   int light_time;
+  int weather_time;
 };
+
+typedef struct Configuration Configuration;
 
 typedef struct Weather Weather;

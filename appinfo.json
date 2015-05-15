@@ -4,7 +4,8 @@
         "WEATHER_CITY_KEY": 1,
         "WEATHER_CONDITION_KEY": 3,
         "WEATHER_REQUEST_KEY": 0,
-        "WEATHER_TEMPERATURE_KEY": 2
+        "WEATHER_TEMPERATURE_KEY": 2,
+        "WEATHER_TIME_KEY": 6
     },
     "capabilities": [
         "location",

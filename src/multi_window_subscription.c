@@ -60,8 +60,12 @@ void multi_window_tap_handler(AccelAxisType axis, int32_t direction){
 
 void multi_window_app_sync_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context){
   MultiWindow* multi_window = get_multi_window();
-  for(int i = 0; i < multi_window->number_sync_handlers; i++){
-    multi_window->sync_handlers[i](key, new_tuple, old_tuple, context);
+  if(multi_window->sync_handlers != NULL){
+    for(int i = 0; i < multi_window->number_sync_handlers; i++){
+      multi_window->sync_handlers[i](key, new_tuple, old_tuple, context);
+      printf("sync handler: %i", i);
+    }
+    printf("done with sync handlers");
   }
 }
 
@@ -72,6 +76,10 @@ void multi_window_appsync_init(struct AppSync * s,
                                const uint8_t count,
                                void * context){
   app_sync_init(s, buffer, buffer_size, keys_and_initial_values, count, multi_window_app_sync_handler, NULL, context);
+}
+
+void multi_window_app_sync_deinit(struct AppSync * s){
+  app_sync_deinit(s);
 }
 
 
@@ -121,7 +129,7 @@ void multi_window_accel_tap_service_subscribe(AccelTapHandler tap_handler){
 
 void multi_window_app_sync_service_subscribe(AppSyncTupleChangedCallback change_handler){
   MultiWindow* multi_window = get_multi_window();
-  add_handler((Function**)&(multi_window->tap_handlers), (Function) change_handler, multi_window->number_tap_handlers, SYNC);
+  add_handler((Function**)&(multi_window->sync_handlers), (Function) change_handler, multi_window->number_sync_handlers, SYNC);
   multi_window->number_sync_handlers+=1;
 }
 
@@ -172,7 +180,7 @@ void add_handler(Function** pointer_to_handlers, Function new_handler, int numbe
 }
 
 void remove_handler(Function** pointer_to_handlers, Function handler_to_remove, int number_handlers, int type){
-  function_array_add(pointer_to_handlers, handler_to_remove, number_handlers);
+  function_array_remove(pointer_to_handlers, handler_to_remove, number_handlers);
   if (number_handlers == 1){
     switch(type){
       case TICK: tick_timer_service_unsubscribe(); break;
