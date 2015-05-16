@@ -74,7 +74,9 @@ void start_weather_timer(void* data){
     app_timer_cancel(timer);
   }
   int weather_time = get_weather_time();
-  timer = app_timer_register(1000*60*weather_time, start_weather_timer, NULL);
+  if(weather_time != 0){
+    timer = app_timer_register(1000*60*weather_time, start_weather_timer, NULL);
+  }
 }
 
 void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context) {
@@ -143,15 +145,15 @@ void main_de_init(void* nothing, int none){
 void weather_init(void* nothing, int none){
   weather_neat_init();
 }
-
 void weather_deinit(void* nothing, int none){
   weather_neat_deinit();
 }
-void test_init(void* nothing, int none){
 
+void test_init(void* nothing, int none){
+  show_forecast_window();
 }
 void test_deinit(void* nothing, int none){
-  
+  hide_forecast_window();
 }
 
 int main(void){
@@ -165,13 +167,11 @@ int main(void){
   
   multi_window_set_main_window(sub_window_create(main_init, main_de_init,NULL, NULL, NULL));
   multi_window_add_sub_window(sub_window_create(weather_init, weather_deinit, NULL, NULL, NULL));
-  multi_window_add_sub_window(sub_window_create(test_init, test_init, NULL, NULL, NULL));
+  multi_window_add_sub_window(sub_window_create(test_init, test_deinit, NULL, NULL, get_forecast_layer));
 
   multi_window_display_initial();
-  multi_window_display_next();
-  multi_window_display_next();
-  /*
   multi_window_shake_for_next(true);
+  /*
   */
   app_event_loop();
   

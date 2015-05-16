@@ -12,7 +12,7 @@ struct SubWindow{
   void (* de_init)(void* args, int num_args);
   void (* service_subscribe)(void* args, int num_args);
   void (* service_unsubscribe) (void* args, int num_args);
-  Layer* layer;
+  Layer* (* get_layer)();
   bool displayed;
 };
 
@@ -25,6 +25,6 @@ SubWindow* sub_window_create(void (* init)(void* args, int num_args),
                              void (* de_init)(void* args, int num_args), 
                              void (* service_subscribe)(void* args, int num_args),
                              void (* service_unsubscribe) (void* args, int num_args),
-                             Layer* layer);
+                             Layer* (* get_layer)());
 
 void sub_window_delete(SubWindow* sub_window);
