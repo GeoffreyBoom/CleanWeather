@@ -2,6 +2,12 @@
 #include <stdio.h>
 #include "main_window.h"
 
+void show_window(void);
+void hide_window(void);
+
+void tick_handler(struct tm *tick_time, TimeUnits units_changed );
+void bluetooth_handler(bool bluetooth);
+void battery_handler(BatteryChargeState battery);
 
 Layer     *mainLayer;
 TextLayer *title_layer;
@@ -37,6 +43,20 @@ void init(void) {
   //initializing battery
   battery_handler(battery_state_service_peek());
 }
+
+void light_off(void* data){
+  set_text_title("CleanWeather");
+  light_enable(false);
+}
+
+
+void shake_handler(AccelAxisType axis, int32_t direction){
+  int light_time = get_light_time();
+  light_enable(true);
+  app_timer_register(1000*light_time, light_off, NULL);
+  set_text_title("Light!");
+}
+
 
 void deinit(void) {
   // Destroy main Window

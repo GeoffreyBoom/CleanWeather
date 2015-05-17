@@ -1,5 +1,9 @@
 {
     "appKeys": {
+        "FORECAST_KEY_1": 7,
+        "FORECAST_KEY_2": 8,
+        "FORECAST_KEY_3": 9,
+        "FORECAST_KEY_4": 10,
         "LIGHT_TIME_KEY": 5,
         "WEATHER_CITY_KEY": 1,
         "WEATHER_CONDITION_KEY": 3,

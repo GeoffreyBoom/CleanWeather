@@ -10,7 +10,6 @@ Pebble.addEventListener('appmessage', function(e) {
   get_location();
 });
 
-
 function get_location(){
   navigator.geolocation.getCurrentPosition(
     function locationSuccess(pos) {
@@ -19,19 +18,28 @@ function get_location(){
         longitude:  pos.coords.longitude,
         recent:     true
       };
-      
-      console.log(location.latitude);
-      console.log(location.longitude);
+      console.log(location.latitude + ", " + location.longitude);
       
       get_weather(location);
+      get_forecast(location);
     },
     function locationError(err) {
-      var location = {
-        latitude  : null,
-        longitude : null,
-        recent    : false
-      };
-      get_weather(location);
+      switch(err.code){
+        case err.POSITION_UNAVAILABLE:
+        case err.TIMEOUT:
+          console.log("position unavailable or timeout");
+          setTimeout(get_location, 60000);
+          break;
+        case err.PERMISSION_DENIED:
+          console.log("position permission denied");
+          var location = {
+            latitude  : null,
+            longitude : null,
+            recent    : false
+          };
+          get_weather(location);
+          get_forecast(location);
+      }
     },
     {
       enableHighAccuracy: true, 
@@ -72,7 +80,76 @@ function get_weather(location){
   html.send();
 }
 
+function parse_forecast(j){  
+  var list = j.list;
+  var to_return = [
+    {"dt": list[0].dt_txt, "temp": list[0].main.temp},
+    {"dt": list[1].dt_txt, "temp": list[1].main.temp},
+    {"dt": list[2].dt_txt, "temp": list[2].main.temp},
+    {"dt": list[3].dt_txt, "temp": list[2].main.temp}
+  ];
+  return to_return;
+}
+
+function get_forecast(location){
+  var URL = "";
+  if(location.latitude!== null && location.longitude !== null){
+    URL = 'http://api.openweathermap.org/data/2.5/forecast'+
+      '?lat=' + location.latitude +
+      '&lon=' + location.longitude +
+      '&units=metric&mode=json';
+  }
+  else{
+    console.log("long/lat was null");
+    URL = 'http://api.openweathermap.org/data/2.5/forecast?q=Montreal&units=metric&mode=json'; 
+  }
+  var html = new XMLHttpRequest();
+  
+  html.onreadystatechange  = function(e){
+    if (html.readyState == 4 && html.status == 200){
+      var response = JSON.parse(html.responseText);
+      var weather = parse_forecast(response);
+      send_forecast(weather);
+    }
+  };
+  html.open("GET", URL, true);
+  html.send();
+}
 var numSends = 0;
+function send_forecast(forecast){
+  var forecastString = "";
+  var forecast_array = [];
+  for(var i = 0; i<4;i++){
+    var date = new Date(forecast[i].dt);
+    var minute = date.getMinutes();
+    var hour = date.getHours();
+    minute = (minute < 10 ? "0" : "") + minute;
+    hour = (hour < 10 ? "0" : "") + hour;
+    forecastString += ("" + hour + ":" + minute + " -> ");
+    forecastString += ("" + forecast[i].temp + "°C");
+    forecast_array[i] = forecastString;
+    forecastString = "";
+  }
+  console.log("forecast" + forecastString);
+  var dict = {
+    "FORECAST_KEY_1": forecast_array[0],
+    "FORECAST_KEY_2": forecast_array[1],
+    "FORECAST_KEY_3": forecast_array[2],
+    "FORECAST_KEY_4": forecast_array[3]
+  };
+  console.log(JSON.stringify(dict));
+  Pebble.sendAppMessage(dict,
+    function(e){
+      console.out("Forecast send successful");
+    },
+    function(e){
+      if(++numSends < 10){
+        var time = Math.floor((Math.random() * 1000) + 1);
+        setTimeout(send_forecast(forecast), time);
+      }
+    });
+}
+
 function send_weather(weather){
   console.log("sending weather");
   var dict = {"WEATHER_CITY_KEY": weather.city,
@@ -108,7 +185,7 @@ Pebble.addEventListener('webviewclosed',
       "WEATHER_TIME_KEY": parseInt(configuration.weather_interval)
     };
     console.log('Configuration window returned: ' + dict.LIGHT_TIME_KEY);
-    console.log('Configuration window returned: ' + dict.WEATHER_INTERVAL);
+    console.log('Configuration window returned: ' + dict.WEATHER_TIME_KEY);
     send_configuration(dict);
 
   }

@@ -9,17 +9,12 @@ TextLayer *condition_layer;
 
 void weather_neat_populate_ui();
 
-
 void weather_neat_init(void) {
-  
   weather_neat_initialise_ui();
-  
   weather_neat_populate_ui();
-  
   // begin DT counting
   multi_window_tick_timer_service_subscribe(MINUTE_UNIT, weather_neat_tick_handler);
   weather_neat_tick_handler(NULL, MINUTE_UNIT);
-  
   //register shake handler
   multi_window_accel_tap_service_subscribe(shake_handler);
   
@@ -58,6 +53,9 @@ Weather* get_weather_buffer(){
       strcpy(weather_buffer->location, "NULL");
       strcpy(weather_buffer->temperature, "NULL°C");
       strcpy(weather_buffer->condition, "NULL");
+      strcpy(weather_buffer->forecast_1, "00:00 00°C");
+      strcpy(weather_buffer->forecast_2, "00:00 00°C");
+      strcpy(weather_buffer->forecast_3, "00:00 00°C");
       weather_buffer->time = 100;
       persist_write_data(WEATHER_DATA_LOCATION, weather_buffer, sizeof(struct Weather));
     }
@@ -101,7 +99,6 @@ void set_weather_time(int time){
 
 void weather_neat_tick_handler(struct tm *tick_time, TimeUnits units_changed ){
   time_t temp = (time(NULL));
-  //tick_time = localtime(&temp);
   Weather weather_buffer = *get_weather_buffer();
 
   static char sdeltat[10];

@@ -61,7 +61,11 @@ void setup_app_sync(){
     TupletCString(WEATHER_TEMPERATURE_KEY, weather_buffer.temperature),
     TupletCString(WEATHER_CONDITION_KEY, weather_buffer.condition),
     TupletInteger(LIGHT_TIME_KEY, light_time),
-    TupletInteger(WEATHER_TIME_KEY, weather_time)
+    TupletInteger(WEATHER_TIME_KEY, weather_time),
+    TupletCString(FORECAST_KEY_1, weather_buffer.forecast_1),
+    TupletCString(FORECAST_KEY_2, weather_buffer.forecast_2),
+    TupletCString(FORECAST_KEY_3, weather_buffer.forecast_3),
+    TupletCString(FORECAST_KEY_4, weather_buffer.forecast_4)
   };
   // Begin using AppSync
   multi_window_appsync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values, ARRAY_LENGTH(initial_values), NULL);
@@ -75,7 +79,12 @@ void start_weather_timer(void* data){
   }
   int weather_time = get_weather_time();
   if(weather_time != 0){
+    printf("weather time was not 0");
     timer = app_timer_register(1000*60*weather_time, start_weather_timer, NULL);
+  }
+  else{
+    printf("weather time was 0");
+    timer = app_timer_register(1000*60*10, start_weather_timer, NULL);
   }
 }
 
@@ -85,6 +94,10 @@ void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tupl
   static char s_city_buffer[32];
   static char s_temperature_buffer[5];
   static char s_condition_buffer[32];
+  static char for_1[32];
+  static char for_2[32];
+  static char for_3[32];
+  static char for_4[32];
   Weather* weather_buffer = get_weather_buffer();
   switch(key){
     case WEATHER_CITY_KEY:
@@ -108,6 +121,28 @@ void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tupl
         weather_buffer->time = time(NULL);
       }
       break;
+    case FORECAST_KEY_1:
+      snprintf(for_1, sizeof(for_1), "%s", (char*)new_tuple->value->cstring);
+      strncpy(weather_buffer->forecast_1, for_1, sizeof(for_1));
+      set_text_forecast_1(weather_buffer->forecast_1);
+      break;
+    case FORECAST_KEY_2:
+      snprintf(for_2, sizeof(for_2), "%s", (char*)new_tuple->value->cstring);
+      strncpy(weather_buffer->forecast_2, for_2, sizeof(for_2));
+      set_text_forecast_2(weather_buffer->forecast_2);
+      break;
+    case FORECAST_KEY_3:
+      snprintf(for_3, sizeof(for_3), "%s", (char*)new_tuple->value->cstring);
+      strncpy(weather_buffer->forecast_3, for_3, sizeof(for_3));
+      set_text_forecast_3(weather_buffer->forecast_3);
+      printf("%s", weather_buffer->forecast_3);
+      break;
+    case FORECAST_KEY_4:
+      snprintf(for_4, sizeof(for_4), "%s", (char*)new_tuple->value->cstring);
+      strncpy(weather_buffer->forecast_4, for_4, sizeof(for_4));
+      set_text_forecast_4(weather_buffer->forecast_4);
+      printf("forecast 4:%s", weather_buffer->forecast_4);
+      break;
   }
   persist_write_data(WEATHER_DATA_LOCATION, weather_buffer, sizeof(struct Weather));
   weather_neat_tick_handler(NULL, MINUTE_UNIT);
@@ -119,16 +154,16 @@ void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tupl
 void configuration_sync_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context){
   printf("starting configuration sync handler\n");
   switch(key){
-    printf("key: %i", (int)key);
+    //printf("key: %i", (int)key);
     case LIGHT_TIME_KEY:
       set_light_time((int)new_tuple->value->int32);
       break;
     case WEATHER_TIME_KEY:
       set_weather_time((int)new_tuple->value->int32);
+      printf("%i", get_weather_time());
       break;
-    printf("finished using key");
   }
-  printf("finished configuration sync handler");
+  //printf("finished configuration sync handler");
 }
 
 void weather_callback(void* data){
@@ -173,6 +208,8 @@ int main(void){
   multi_window_shake_for_next(true);
   /*
   */
+  printf("free: %i", (int)heap_bytes_free());
+  printf("used: %i", (int)heap_bytes_used());
   app_event_loop();
   
   // Finish using AppSync

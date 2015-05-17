@@ -7,4 +7,4 @@
 #include "forecast_window.h"
 
 AppSync s_sync;
-uint8_t s_sync_buffer[256];
+uint8_t s_sync_buffer[512];
