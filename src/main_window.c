@@ -4,6 +4,7 @@
 
 void show_window(void);
 void hide_window(void);
+void shake_handler(AccelAxisType axis, int32_t direction);
 
 void tick_handler(struct tm *tick_time, TimeUnits units_changed );
 void bluetooth_handler(bool bluetooth);
@@ -42,6 +43,18 @@ void init(void) {
   multi_window_battery_state_service_subscribe(battery_handler);
   //initializing battery
   battery_handler(battery_state_service_peek());
+  
+  multi_window_accel_tap_service_subscribe(shake_handler);
+}
+
+void deinit(void) {
+  // Destroy main Window
+  hide_window();
+  //window_destroy(s_main_window);
+  multi_window_bluetooth_connection_service_unsubscribe(bluetooth_handler);
+  gbitmap_destroy(bluetooth_icon);
+  bitmap_layer_destroy(bluetooth_layer);
+  multi_window_accel_tap_service_unsubscribe(shake_handler);
 }
 
 void light_off(void* data){
@@ -51,20 +64,17 @@ void light_off(void* data){
 
 
 void shake_handler(AccelAxisType axis, int32_t direction){
+  static AppTimer* timer = NULL;
   int light_time = get_light_time();
   light_enable(true);
-  app_timer_register(1000*light_time, light_off, NULL);
+  if(timer == NULL){
+    timer = app_timer_register(1000*light_time, light_off, NULL);
+  }
+  else{
+    app_timer_cancel(timer);
+    timer = app_timer_register(1000*light_time, light_off, NULL);
+  }  
   set_text_title("Light!");
-}
-
-
-void deinit(void) {
-  // Destroy main Window
-  hide_window();
-  //window_destroy(s_main_window);
-  multi_window_bluetooth_connection_service_unsubscribe(bluetooth_handler);
-  gbitmap_destroy(bluetooth_icon);
-  bitmap_layer_destroy(bluetooth_layer);
 }
 
 bool bluetooth_disconnect_vibe(){
@@ -75,6 +85,7 @@ void bluetooth_handler(bool bluetooth){
   static bool initiated = false;
   Window* s_window = get_window();
   if(bluetooth){
+    printf("bluetooth on");
     if(initiated == true){vibecreate((uint32_t[]){100,200,100,200}, 2);}
     if(bluetooth_icon == NULL){
       bluetooth_icon = gbitmap_create_with_resource(RESOURCE_ID_bluetooth_dark_icon);

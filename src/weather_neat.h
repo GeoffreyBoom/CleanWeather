@@ -10,7 +10,6 @@ void weather_neat_init();
 void weather_neat_deinit();
 void weather_neat_destroy_ui(void);
 void weather_neat_tick_handler(struct tm *tick_time, TimeUnits units_changed );
-void shake_handler(AccelAxisType axis, int32_t direction);
 void weather_neat_initialise_ui();
 void start_weather_timer(void* data);
 void weather_callback(void* data);
@@ -21,12 +20,5 @@ void set_text_location(char*);
 void set_text_update_time(char*);
 
 void set_text_title(char* title);
-
-void setup_app_sync();
-
-int get_light_time();
-int get_weather_time();
-void set_light_time();
-void set_weather_time();
 
 Weather* get_weather_buffer();

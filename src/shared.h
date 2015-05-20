@@ -34,7 +34,15 @@ struct Configuration{
   int light_time;
   int weather_time;
 };
-
 typedef struct Configuration Configuration;
 
 typedef struct Weather Weather;
+
+void set_light_time(int time);
+int get_light_time();
+void set_weather_time(int time);
+int get_weather_time();
+
+Configuration* get_configuration();
+
+

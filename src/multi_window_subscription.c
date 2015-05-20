@@ -63,9 +63,7 @@ void multi_window_app_sync_handler(const uint32_t key, const Tuple *new_tuple, c
   if(multi_window->sync_handlers != NULL){
     for(int i = 0; i < multi_window->number_sync_handlers; i++){
       multi_window->sync_handlers[i](key, new_tuple, old_tuple, context);
-      printf("sync handler: %i", i);
     }
-    printf("done with sync handlers");
   }
 }
 

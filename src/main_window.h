@@ -18,3 +18,7 @@ void set_text_time(char*);
 
 void set_text_title(char* title);
 
+int get_light_time();
+int get_weather_time();
+void set_light_time();
+void set_weather_time();

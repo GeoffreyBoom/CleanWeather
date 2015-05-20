@@ -15,9 +15,6 @@ void weather_neat_init(void) {
   // begin DT counting
   multi_window_tick_timer_service_subscribe(MINUTE_UNIT, weather_neat_tick_handler);
   weather_neat_tick_handler(NULL, MINUTE_UNIT);
-  //register shake handler
-  multi_window_accel_tap_service_subscribe(shake_handler);
-  
 }
 
 void weather_neat_deinit(void) {
@@ -26,23 +23,7 @@ void weather_neat_deinit(void) {
   
   multi_window_tick_timer_service_unsubscribe(weather_neat_tick_handler);
   
-  multi_window_accel_tap_service_unsubscribe(shake_handler);
-  
 }
-
-void light_off(void* data){
-  set_text_title("CleanWeather");
-  light_enable(false);
-}
-
-
-void shake_handler(AccelAxisType axis, int32_t direction){
-  int light_time = get_light_time();
-  light_enable(true);
-  app_timer_register(1000*light_time, light_off, NULL);
-  set_text_title("Light!");
-}
-
 
 Weather* get_weather_buffer(){
   static Weather* weather_buffer = NULL;
@@ -61,40 +42,6 @@ Weather* get_weather_buffer(){
     }
   }
   return weather_buffer;
-}
-
-Configuration* get_configuration(){
-  static Configuration* config = NULL;
-  if(!config){
-    config = malloc(sizeof(Configuration));
-    if((persist_read_data(CONFIGURATION_LOCATION, config, sizeof(config)) == E_DOES_NOT_EXIST)){
-      config->light_time = 6;
-      config->weather_time = 10;
-    }
-  }
-  return config;
-}
-
-int get_light_time(){
-  Configuration* config = get_configuration();
-  return config->light_time;
-}
-
-void set_light_time(int time){
-  Configuration* config = get_configuration();
-  config->light_time = time;
-  persist_write_data(CONFIGURATION_LOCATION, config, sizeof(Configuration));
-}
-
-int get_weather_time(){
-  Configuration* config = get_configuration();
-  return config->weather_time;
-}
-
-void set_weather_time(int time){
-  Configuration* config = get_configuration();
-  config->weather_time = time;
-  persist_write_data(CONFIGURATION_LOCATION, config, sizeof(Configuration));
 }
 
 void weather_neat_tick_handler(struct tm *tick_time, TimeUnits units_changed ){

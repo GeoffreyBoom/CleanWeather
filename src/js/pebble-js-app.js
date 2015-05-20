@@ -86,7 +86,7 @@ function parse_forecast(j){
     {"dt": list[0].dt_txt, "temp": list[0].main.temp},
     {"dt": list[1].dt_txt, "temp": list[1].main.temp},
     {"dt": list[2].dt_txt, "temp": list[2].main.temp},
-    {"dt": list[3].dt_txt, "temp": list[2].main.temp}
+    {"dt": list[3].dt_txt, "temp": list[3].main.temp}
   ];
   return to_return;
 }
