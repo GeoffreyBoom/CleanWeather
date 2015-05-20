@@ -2,7 +2,15 @@
 #include <stdio.h>
 #include "main_window.h"
 
+void show_window(void);
+void hide_window(void);
+void shake_handler(AccelAxisType axis, int32_t direction);
 
+void tick_handler(struct tm *tick_time, TimeUnits units_changed );
+void bluetooth_handler(bool bluetooth);
+void battery_handler(BatteryChargeState battery);
+
+Layer     *mainLayer;
 TextLayer *title_layer;
 TextLayer *time_layer;
 TextLayer *month_layer;
@@ -35,6 +43,8 @@ void init(void) {
   multi_window_battery_state_service_subscribe(battery_handler);
   //initializing battery
   battery_handler(battery_state_service_peek());
+  
+  multi_window_accel_tap_service_subscribe(shake_handler);
 }
 
 void deinit(void) {
@@ -42,9 +52,29 @@ void deinit(void) {
   hide_window();
   //window_destroy(s_main_window);
   multi_window_bluetooth_connection_service_unsubscribe(bluetooth_handler);
-  // Finish using AppSync
   gbitmap_destroy(bluetooth_icon);
   bitmap_layer_destroy(bluetooth_layer);
+  multi_window_accel_tap_service_unsubscribe(shake_handler);
+}
+
+void light_off(void* data){
+  set_text_title("CleanWeather");
+  light_enable(false);
+}
+
+
+void shake_handler(AccelAxisType axis, int32_t direction){
+  static AppTimer* timer = NULL;
+  int light_time = get_light_time();
+  light_enable(true);
+  if(timer == NULL){
+    timer = app_timer_register(1000*light_time, light_off, NULL);
+  }
+  else{
+    app_timer_cancel(timer);
+    timer = app_timer_register(1000*light_time, light_off, NULL);
+  }  
+  set_text_title("Light!");
 }
 
 bool bluetooth_disconnect_vibe(){
@@ -55,6 +85,7 @@ void bluetooth_handler(bool bluetooth){
   static bool initiated = false;
   Window* s_window = get_window();
   if(bluetooth){
+    printf("bluetooth on");
     if(initiated == true){vibecreate((uint32_t[]){100,200,100,200}, 2);}
     if(bluetooth_icon == NULL){
       bluetooth_icon = gbitmap_create_with_resource(RESOURCE_ID_bluetooth_dark_icon);
@@ -89,14 +120,6 @@ void vibecreate(uint32_t segments[], int num_vibes){
   };
   vibes_enqueue_custom_pattern(pat);
 }
-
-/*
-int main(void) {
-  init();
-  app_event_loop();
-  deinit();
-}
-*/
 
 void draw_battery_power(Layer *layer, GContext *ctx) {
   graphics_draw_bitmap_in_rect(ctx, battery_icon, layer_get_bounds(layer));
@@ -207,7 +230,7 @@ void initialise_ui(void) {
   layer_add_child(window_get_root_layer(s_window), (Layer *)title_layer);
   
   // time_layer
-  time_layer = text_layer_create(GRect(20, 37, 104, 31));
+  time_layer = text_layer_create(GRect(21, 37, 104, 31));
   text_layer_set_background_color(time_layer, GColorClear);
   text_layer_set_text_color(time_layer, GColorWhite);
   text_layer_set_text(time_layer, "12:12");
@@ -215,6 +238,15 @@ void initialise_ui(void) {
   text_layer_set_font(time_layer, s_res_bitham_30_black);
   layer_add_child(window_get_root_layer(s_window), (Layer *)time_layer);
   
+  GBitmap*     doge_icon    = gbitmap_create_with_resource(RESOURCE_ID_wow_doge);
+  BitmapLayer* doge_layer   = bitmap_layer_create(GRect(4, 46, 20, 20));
+  BitmapLayer* doge_layer_2 = bitmap_layer_create(GRect(120, 46, 20, 20));
+
+  bitmap_layer_set_bitmap(doge_layer, doge_icon);
+  bitmap_layer_set_bitmap(doge_layer_2, doge_icon);
+  layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(doge_layer));
+  layer_add_child(window_get_root_layer(s_window), bitmap_layer_get_layer(doge_layer_2));
+
   // month_layer
   month_layer = text_layer_create(GRect(85, 14, 60, 30));
   text_layer_set_background_color(month_layer, GColorClear);

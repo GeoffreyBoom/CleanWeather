@@ -40,11 +40,15 @@ void multi_window_display_next(){
 
 void shake_for_next(AccelAxisType axis, int32_t direction){
   static time_t timestamp = 0;
-  if(timestamp==0 || !(((timestamp-time(NULL))/1000)<delta_time_shake)){
-    timestamp = time(NULL);
+  time_t curr = time(NULL);
+  printf("shake happened");
+  if(timestamp==0 || ((curr-timestamp)>delta_time_shake)){
+    printf("dt greater than %i: %lu", delta_time_shake, curr-timestamp);
+    timestamp = curr;
   }
-  else if(((timestamp-time(NULL))/1000)<delta_time_shake){
-    timestamp = time(NULL);
+  else if((time(NULL)-timestamp)<delta_time_shake){
+    printf("dt less than %i: %lu", delta_time_shake, curr-timestamp);
+    timestamp = curr;
     multi_window_display_next();
   }
 }

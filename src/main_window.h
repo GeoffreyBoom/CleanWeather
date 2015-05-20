@@ -10,12 +10,6 @@
 
 void init();
 void deinit();
-void tick_handler(struct tm *tick_time, TimeUnits units_changed );
-void bluetooth_handler(bool bluetooth);
-void battery_handler(BatteryChargeState battery);
-
-void show_window(void);
-void hide_window(void);
 
 void set_text_year(char*);
 void set_text_month(char*);
@@ -24,3 +18,7 @@ void set_text_time(char*);
 
 void set_text_title(char* title);
 
+int get_light_time();
+int get_weather_time();
+void set_light_time();
+void set_weather_time();

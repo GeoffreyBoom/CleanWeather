@@ -1,10 +1,15 @@
 {
     "appKeys": {
+        "FORECAST_KEY_1": 7,
+        "FORECAST_KEY_2": 8,
+        "FORECAST_KEY_3": 9,
+        "FORECAST_KEY_4": 10,
         "LIGHT_TIME_KEY": 5,
         "WEATHER_CITY_KEY": 1,
         "WEATHER_CONDITION_KEY": 3,
         "WEATHER_REQUEST_KEY": 0,
-        "WEATHER_TEMPERATURE_KEY": 2
+        "WEATHER_TEMPERATURE_KEY": 2,
+        "WEATHER_TIME_KEY": 6
     },
     "capabilities": [
         "location",
@@ -15,6 +20,11 @@
     "projectType": "native",
     "resources": {
         "media": [
+            {
+                "file": "images/doge.png",
+                "name": "wow_doge",
+                "type": "png"
+            },
             {
                 "file": "images/bluetooth_black.png",
                 "name": "bluetooth_dark_icon",

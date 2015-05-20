@@ -9,20 +9,12 @@ TextLayer *condition_layer;
 
 void weather_neat_populate_ui();
 
-
 void weather_neat_init(void) {
-  
   weather_neat_initialise_ui();
-  
   weather_neat_populate_ui();
-  
   // begin DT counting
   multi_window_tick_timer_service_subscribe(MINUTE_UNIT, weather_neat_tick_handler);
   weather_neat_tick_handler(NULL, MINUTE_UNIT);
-  
-  //register shake handler
-  multi_window_accel_tap_service_subscribe(shake_handler);
-  
 }
 
 void weather_neat_deinit(void) {
@@ -31,23 +23,7 @@ void weather_neat_deinit(void) {
   
   multi_window_tick_timer_service_unsubscribe(weather_neat_tick_handler);
   
-  multi_window_accel_tap_service_unsubscribe(shake_handler);
-  
 }
-
-void light_off(void* data){
-  set_text_title("CleanWeather");
-  light_enable(false);
-}
-
-
-void shake_handler(AccelAxisType axis, int32_t direction){
-  int light_time = *get_light_time();
-  light_enable(true);
-  app_timer_register(1000*light_time, light_off, NULL);
-  set_text_title("Light!");
-}
-
 
 Weather* get_weather_buffer(){
   static Weather* weather_buffer = NULL;
@@ -58,6 +34,9 @@ Weather* get_weather_buffer(){
       strcpy(weather_buffer->location, "NULL");
       strcpy(weather_buffer->temperature, "NULL°C");
       strcpy(weather_buffer->condition, "NULL");
+      strcpy(weather_buffer->forecast_1, "00:00 00°C");
+      strcpy(weather_buffer->forecast_2, "00:00 00°C");
+      strcpy(weather_buffer->forecast_3, "00:00 00°C");
       weather_buffer->time = 100;
       persist_write_data(WEATHER_DATA_LOCATION, weather_buffer, sizeof(struct Weather));
     }
@@ -65,20 +44,8 @@ Weather* get_weather_buffer(){
   return weather_buffer;
 }
 
-int* get_light_time(){
-  static int* light_time = NULL;
-  if(!light_time){
-    light_time = malloc(sizeof(int));
-    if(!(persist_read_data(CONFIGURATION_LOCATION, light_time, sizeof(light_time)) != E_DOES_NOT_EXIST)){
-      *light_time=6;
-    }
-  }
-  return light_time;
-}
-
 void weather_neat_tick_handler(struct tm *tick_time, TimeUnits units_changed ){
   time_t temp = (time(NULL));
-  //tick_time = localtime(&temp);
   Weather weather_buffer = *get_weather_buffer();
 
   static char sdeltat[10];
