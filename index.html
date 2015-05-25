@@ -1,21 +1,30 @@
 <head>
   <script>
-  	function test(){
-  		params = {
-  			"light_on": document.getElementById("light_on").value,
-  			"weather_interval": document.getElementById("weather_interval").value
-  		}
-  		location.href = 'pebblejs://close#' + encodeURIComponent(JSON.stringify(params));
-  	}
+    function test(){
+      params = {
+        "light_on": document.getElementById("light_on").value,
+        "weather_interval": document.getElementById("weather_interval").value,
+        "weather_updates": document.getElementById("weather_updates").checked,
+        "forecast_updates": document.getElementById("forecast_updates").checked
+      }
+      location.href = 'pebblejs://close#' + encodeURIComponent(JSON.stringify(params));
+    }
   </script>
 </head>
 <body>
   Welcome to the Configuration Page!
   <form>
+    <br />
     How long should light stay on?:
     <input type="number" id="light_on" value="6">
     <br />
-    How often should weather update?:<input type="number" id="weather_interval" value="10"> minutes
+    <br />
+    Do you want to see Weather Updates? <input type="checkbox" id="weather_updates">
+    <br />
+    Do you want to see Forecast Updates? <input type="checkbox" id="forecast_updates">
+    <br />
+    <br />
+    How often should these update?: <input type="number" id="weather_interval" value="10"> minutes
     <br />
     <input type="button" onclick="test()" value="finished"></input>
   </form>
