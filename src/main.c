@@ -224,10 +224,11 @@ int main(void){
   setup_app_sync();  
   // Start Weather Updating
   start_weather_timer(NULL);
-  
+  SubWindow* forecast = sub_window_create(test_init, test_deinit, NULL, NULL, get_forecast_layer);
   multi_window_set_main_window(sub_window_create(main_init, main_de_init,NULL, NULL, NULL));
   multi_window_add_sub_window(sub_window_create(weather_init, weather_deinit, NULL, NULL, get_weather_layer));
-  multi_window_add_sub_window(sub_window_create(test_init, test_deinit, NULL, NULL, get_forecast_layer));
+  multi_window_add_sub_window(forecast);
+  multi_window_remove_sub_window(forecast);
   
   multi_window_display_initial();
   multi_window_shake_for_next(true);

@@ -21,28 +21,8 @@
     "resources": {
         "media": [
             {
-                "file": "images/charging.png",
-                "name": "CHARGING_DARK_ICON",
-                "type": "png"
-            },
-            {
-                "file": "images/download.png",
-                "name": "ScreenShot",
-                "type": "png"
-            },
-            {
-                "file": "images/bluetooth.png",
-                "name": "bluetooth_icon",
-                "type": "png-trans"
-            },
-            {
-                "file": "images/battery.png",
-                "name": "battery_icon",
-                "type": "png"
-            },
-            {
-                "file": "images/battery_black.png",
-                "name": "battery_dark_icon",
+                "file": "images/doge.png",
+                "name": "wow_doge",
                 "type": "png"
             },
             {
@@ -51,8 +31,28 @@
                 "type": "png"
             },
             {
-                "file": "images/doge.png",
-                "name": "wow_doge",
+                "file": "images/battery_black.png",
+                "name": "battery_dark_icon",
+                "type": "png"
+            },
+            {
+                "file": "images/battery.png",
+                "name": "battery_icon",
+                "type": "png"
+            },
+            {
+                "file": "images/bluetooth.png",
+                "name": "bluetooth_icon",
+                "type": "png-trans"
+            },
+            {
+                "file": "images/download.png",
+                "name": "ScreenShot",
+                "type": "png"
+            },
+            {
+                "file": "images/charging.png",
+                "name": "CHARGING_DARK_ICON",
                 "type": "png"
             }
         ]

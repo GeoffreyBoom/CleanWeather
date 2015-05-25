@@ -1,11 +1,13 @@
 #pragma once
 #include "sub_window.h"
-
+#include "array.h"
 struct WindowSequence;
 
 typedef struct WindowSequence WindowSequence;
 
 void window_sequence_add_sub_window(SubWindow* sub_window, WindowSequence* sequence);
+
+void window_sequence_remove_sub_window(SubWindow* subwindow, WindowSequence* sequence);
 
 void window_sequence_display_next(WindowSequence* sequence);
 

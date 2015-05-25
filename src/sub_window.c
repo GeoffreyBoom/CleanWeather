@@ -45,21 +45,25 @@ void sub_window_display(SubWindow* sub_window){
 }
 
 void sub_window_de_display(SubWindow* sub_window){
-  if(sub_window->de_init != NULL){
-    sub_window->de_init(NULL, 0);
+  if(sub_window != NULL){
+    if(sub_window->displayed){
+      if(sub_window->de_init != NULL){
+        sub_window->de_init(NULL, 0);
+      }
+      if(sub_window->service_unsubscribe != NULL){
+        sub_window->service_unsubscribe(NULL, 0);
+      }
+      if(sub_window->get_layer != NULL){
+        printf("layer not null");
+        //Window* window = get_window();
+        layer_remove_from_parent((Layer *) sub_window->get_layer());
+      }
+      else{
+        printf("layer null");
+      }
+      sub_window->displayed=false;
+    }
   }
-  if(sub_window->service_unsubscribe != NULL){
-    sub_window->service_unsubscribe(NULL, 0);
-  }
-  if(sub_window->get_layer != NULL){
-    printf("layer not null");
-    //Window* window = get_window();
-    layer_remove_from_parent((Layer *) sub_window->get_layer());
-  }
-  else{
-    printf("layer null");
-  }
-  sub_window->displayed=false;
 }
 
 

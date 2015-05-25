@@ -43,6 +43,15 @@ void window_sequence_add_sub_window(SubWindow* sub_window, WindowSequence* seque
   sequence->sub_window_array = new_array;
 }
 
+void window_sequence_remove_sub_window(SubWindow* subwindow, WindowSequence* sequence){
+  sub_window_de_display(sequence->sub_window_array[sequence->current_window]);
+  pointer_array_remove((Pointer**)&sequence->sub_window_array, subwindow, &sequence->num_sub_windows);
+  if(sequence->num_sub_windows > 0){
+    sequence->current_window = 0;
+    sub_window_display(sequence->sub_window_array[sequence->current_window]);
+  }
+}
+
 
 void window_sequence_display_next(WindowSequence* sequence){
   sequence->current_window = (sequence->current_window+1)%sequence->num_sub_windows;

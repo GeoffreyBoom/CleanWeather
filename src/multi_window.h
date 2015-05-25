@@ -30,6 +30,8 @@ MultiWindow* get_multi_window();
 
 void multi_window_set_main_window(SubWindow*);
 void multi_window_add_sub_window(SubWindow*);
+void multi_window_remove_sub_window(SubWindow*);
+
 //void multi_window_remove_sub_window(SubWindow*);
 void multi_window_display_initial();
 void multi_window_display_next();
