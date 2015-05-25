@@ -61,3 +61,20 @@ void multi_window_shake_for_next(bool enabled){
     multi_window_accel_tap_service_unsubscribe(shake_for_next);
   }
 }
+
+Window* get_window(){
+  static Window* window = NULL;
+  if(window == NULL){
+    window = window_create();
+    window_set_window_handlers(window, (WindowHandlers) {
+      .unload = exit_window,
+    });
+  }
+  return window;
+}
+
+void exit_window(){
+  Window* s_window = get_window();
+  window_stack_remove(s_window, true);
+  window_destroy(s_window);
+}

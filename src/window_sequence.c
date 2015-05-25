@@ -1,7 +1,7 @@
 #include <pebble.h>
 #include "window_sequence.h"
   
-WindowSequence default_sequence     = {NULL, NULL, 0,-1};
+WindowSequence default_sequence = {NULL, NULL, 0,-1};
 
 
 //initial window is the index starting at 0, whereas num_sub_windows should be equal to 2 if there are 2 windows, etc.

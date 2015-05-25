@@ -53,7 +53,7 @@ void sub_window_de_display(SubWindow* sub_window){
   }
   if(sub_window->get_layer != NULL){
     printf("layer not null");
-    Window* window = get_window();
+    //Window* window = get_window();
     layer_remove_from_parent((Layer *) sub_window->get_layer());
   }
   else{

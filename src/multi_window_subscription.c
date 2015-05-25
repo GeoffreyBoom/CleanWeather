@@ -12,9 +12,9 @@ enum handler_types{
 
 typedef void (*Function)();
 void add_handler(Function** pointer_to_handlers, Function new_handler, int number_handlers, int type);
-void remove_handler(Function** pointer_to_handlers, Function handler_to_remove, int number_handlers, int type);
+int remove_handler(Function** pointer_to_handlers, Function handler_to_remove, int number_handlers, int type);
 void function_array_add(Function** pointer_to_handlers, Function new_handler, int number_handlers);
-void function_array_remove(Function** pointer_to_handlers, Function handler_to_remove, int number_handlers);
+int function_array_remove(Function** pointer_to_handlers, Function handler_to_remove, int number_handlers);
 
 struct TickSubscription{
   TimeUnits tick_units;
@@ -158,8 +158,8 @@ void multi_window_accel_tap_service_unsubscribe(AccelTapHandler tap_handler){
 
 void multi_window_app_sync_service_unsubscribe(AppSyncTupleChangedCallback change_handler){
   MultiWindow* multi_window = get_multi_window();
-  remove_handler((Function**)&(multi_window->tap_handlers), (Function) change_handler, multi_window->number_tap_handlers, SYNC);
-  multi_window->number_sync_handlers-=1;
+  int num_in = remove_handler((Function**)&(multi_window->tap_handlers), (Function) change_handler, multi_window->number_tap_handlers, SYNC);
+  multi_window->number_sync_handlers-=num_in;
 }
 
 //generic code:
@@ -177,16 +177,20 @@ void add_handler(Function** pointer_to_handlers, Function new_handler, int numbe
   }
 }
 
-void remove_handler(Function** pointer_to_handlers, Function handler_to_remove, int number_handlers, int type){
-  function_array_remove(pointer_to_handlers, handler_to_remove, number_handlers);
-  if (number_handlers == 1){
-    switch(type){
-      case TICK: tick_timer_service_unsubscribe(); break;
-      case BLUETOOTH: bluetooth_connection_service_unsubscribe(); break;
-      case BATTERY: battery_state_service_unsubscribe(); break;
-      case TAP: accel_tap_service_unsubscribe(); break;
+int remove_handler(Function** pointer_to_handlers, Function handler_to_remove, int number_handlers, int type){
+  if(*pointer_to_handlers){
+    int num_in = function_array_remove(pointer_to_handlers, handler_to_remove, number_handlers);
+    if (number_handlers == 1){
+      switch(type){
+        case TICK: tick_timer_service_unsubscribe(); break;
+        case BLUETOOTH: bluetooth_connection_service_unsubscribe(); break;
+        case BATTERY: battery_state_service_unsubscribe(); break;
+        case TAP: accel_tap_service_unsubscribe(); break;
+      }
     }
+    return num_in;
   }
+  return 0;
 }
 
 
@@ -202,7 +206,7 @@ void function_array_add(Function** pointer_to_handlers, Function new_handler, in
   free(old_handlers);
 }
 
-void function_array_remove(Function** pointer_to_handlers, Function handler_to_remove, int number_handlers){
+int function_array_remove(Function** pointer_to_handlers, Function handler_to_remove, int number_handlers){
   Function* old_handlers = *pointer_to_handlers;
   //count number of times handler_to_remove occurs
   int num_in = 0;
@@ -223,4 +227,5 @@ void function_array_remove(Function** pointer_to_handlers, Function handler_to_r
   }
   *pointer_to_handlers = new_handlers;
   free(old_handlers);
+  return num_in;
 }
