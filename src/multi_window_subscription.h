@@ -1,5 +1,7 @@
 #pragma once
 #include "multi_window.h"
+#include "array.h"
+#include "stdio.h"
   
 void multi_window_appsync_init(struct AppSync * s, uint8_t * buffer, const uint16_t buffer_size, 
                                const Tuplet *const keys_and_initial_values, const uint8_t count,

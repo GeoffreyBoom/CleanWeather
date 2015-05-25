@@ -62,3 +62,5 @@ void set_version(){
   int version = 0;
   persist_write_data(VERSION_LOCATION, &version, sizeof(int));
 }
+
+

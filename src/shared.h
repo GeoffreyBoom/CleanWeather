@@ -50,3 +50,4 @@ void set_light_time(int time);
 int get_light_time();
 void set_weather_time(int time);
 int get_weather_time();
+

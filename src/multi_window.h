@@ -4,6 +4,7 @@
 #include "sub_window.h"
 #include "window_sequence.h"
 #include "multi_window.h"
+#include "array.h"
 struct MultiWindow;
 
 typedef struct MultiWindow MultiWindow;

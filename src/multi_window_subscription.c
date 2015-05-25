@@ -1,7 +1,6 @@
 #include <pebble.h>
 #include <stdio.h>
 #include "multi_window_subscription.h"
-#include "stdio.h"
 enum handler_types{
   TICK = 0,
   BLUETOOTH=1,
@@ -10,11 +9,8 @@ enum handler_types{
   SYNC=4
 };
 
-typedef void (*Function)();
 void add_handler(Function** pointer_to_handlers, Function new_handler, int number_handlers, int type);
 int remove_handler(Function** pointer_to_handlers, Function handler_to_remove, int number_handlers, int type);
-void function_array_add(Function** pointer_to_handlers, Function new_handler, int number_handlers);
-int function_array_remove(Function** pointer_to_handlers, Function handler_to_remove, int number_handlers);
 
 struct TickSubscription{
   TimeUnits tick_units;
@@ -191,41 +187,4 @@ int remove_handler(Function** pointer_to_handlers, Function handler_to_remove, i
     return num_in;
   }
   return 0;
-}
-
-
-//very generic code:
-void function_array_add(Function** pointer_to_handlers, Function new_handler, int number_handlers){
-  Function* old_handlers = *pointer_to_handlers;
-  Function* new_handlers = malloc(sizeof(Function)*(number_handlers+1));
-  for(int i = 0; i < number_handlers; i++){
-    new_handlers[i] = old_handlers[i];
-  }
-  new_handlers[number_handlers] = new_handler;
-  *pointer_to_handlers = new_handlers;
-  free(old_handlers);
-}
-
-int function_array_remove(Function** pointer_to_handlers, Function handler_to_remove, int number_handlers){
-  Function* old_handlers = *pointer_to_handlers;
-  //count number of times handler_to_remove occurs
-  int num_in = 0;
-  for(int i = 0; i < number_handlers;i++){
-    if(old_handlers[i] == handler_to_remove){
-      num_in++;
-    }
-  }
-  //make new handlers array the same size as old array, minus number of occurences of handler_to_remove
-  Function* new_handlers = malloc(sizeof(Function)*(number_handlers-num_in));
-  //copy all but the handler_to_remove
-  int new_index = 0;
-  for(int i = 0; i < number_handlers; i++){
-    if(old_handlers[i] != handler_to_remove){
-      new_handlers[new_index] = old_handlers[i];
-      new_index++;
-    }
-  }
-  *pointer_to_handlers = new_handlers;
-  free(old_handlers);
-  return num_in;
 }
