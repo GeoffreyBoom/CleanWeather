@@ -1,6 +1,6 @@
 #include <pebble.h>
 #include "window.h"
-Window* get_window(){
+/*Window* get_window(){
   static Window* window = NULL;
   if(window == NULL){
     window = window_create();
@@ -15,4 +15,4 @@ void exit_window(){
   Window* s_window = get_window();
   window_stack_remove(s_window, true);
   window_destroy(s_window);
-}
+}*/

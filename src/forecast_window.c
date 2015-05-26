@@ -2,7 +2,7 @@
 #include "forecast_window.h"
 
 // BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
- Layer *layer;
+Layer            *layer;
 static TextLayer *s_textlayer_1;
 static TextLayer *s_textlayer_2;
 static TextLayer *s_textlayer_3;

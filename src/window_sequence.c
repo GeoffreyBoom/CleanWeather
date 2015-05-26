@@ -1,7 +1,7 @@
 #include <pebble.h>
 #include "window_sequence.h"
   
-WindowSequence default_sequence     = {NULL, NULL, 0,-1};
+WindowSequence default_sequence = {NULL, NULL, 0,-1};
 
 
 //initial window is the index starting at 0, whereas num_sub_windows should be equal to 2 if there are 2 windows, etc.
@@ -43,6 +43,15 @@ void window_sequence_add_sub_window(SubWindow* sub_window, WindowSequence* seque
   sequence->sub_window_array = new_array;
 }
 
+void window_sequence_remove_sub_window(SubWindow* subwindow, WindowSequence* sequence){
+  sub_window_de_display(sequence->sub_window_array[sequence->current_window]);
+  pointer_array_remove((Pointer**)&sequence->sub_window_array, subwindow, &sequence->num_sub_windows);
+  if(sequence->num_sub_windows > 0){
+    sequence->current_window = 0;
+    sub_window_display(sequence->sub_window_array[sequence->current_window]);
+  }
+}
+
 
 void window_sequence_display_next(WindowSequence* sequence){
   sequence->current_window = (sequence->current_window+1)%sequence->num_sub_windows;
@@ -59,12 +68,18 @@ void window_sequence_display_next(WindowSequence* sequence){
 }
 
 void window_sequence_display_initial(WindowSequence* sequence){
-  if(!sequence->main_window->displayed){
-    sub_window_display(sequence->main_window);
-    (sequence->main_window->displayed) = true;
+  if(sequence->main_window != NULL){
+    if(!sequence->main_window->displayed){
+      sub_window_display(sequence->main_window);
+      (sequence->main_window->displayed) = true;
+    }
   }
-  if(!(sequence->sub_window_array[sequence->current_window])->displayed){
-    sub_window_display(sequence->sub_window_array[sequence->current_window]);
-    (sequence->sub_window_array[sequence->current_window])->displayed= true;
+  if(sequence->current_window < sequence->num_sub_windows){
+    if(sequence->sub_window_array[sequence->current_window]){
+      if(!(sequence->sub_window_array[sequence->current_window])->displayed){
+        sub_window_display(sequence->sub_window_array[sequence->current_window]);
+        (sequence->sub_window_array[sequence->current_window])->displayed= true;
+      }
+    }
   }
 }

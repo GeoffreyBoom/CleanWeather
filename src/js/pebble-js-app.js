@@ -66,7 +66,7 @@ function get_weather(location){
   html.onreadystatechange  = function(e){
     if (html.readyState == 4 && html.status == 200) {
       var response = JSON.parse(html.responseText);
-      console.log(response.name);
+      console.log(html.responseText);
       var weather = {
         city: response.name,
         condition: response.weather[0].description,

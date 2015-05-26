@@ -29,6 +29,13 @@ void multi_window_add_sub_window(SubWindow* new_window){
   }
   window_sequence_add_sub_window(new_window, multi_window->window_sequence);
 }
+void multi_window_remove_sub_window(SubWindow* old_window){
+  MultiWindow* multi_window = get_multi_window();
+  if(multi_window->window_sequence==NULL){
+    multi_window->window_sequence = window_sequence_create(NULL,NULL,0,0);
+  }
+  window_sequence_remove_sub_window(old_window, multi_window->window_sequence);
+}
 void multi_window_display_initial(){
   MultiWindow* multi_window = get_multi_window();
   window_sequence_display_initial(multi_window->window_sequence);
@@ -60,4 +67,21 @@ void multi_window_shake_for_next(bool enabled){
   else{
     multi_window_accel_tap_service_unsubscribe(shake_for_next);
   }
+}
+
+Window* get_window(){
+  static Window* window = NULL;
+  if(window == NULL){
+    window = window_create();
+    window_set_window_handlers(window, (WindowHandlers) {
+      .unload = exit_window,
+    });
+  }
+  return window;
+}
+
+void exit_window(){
+  Window* s_window = get_window();
+  window_stack_remove(s_window, true);
+  window_destroy(s_window);
 }

@@ -314,12 +314,20 @@ void show_window(void) {
   window_set_window_handlers(s_window, (WindowHandlers) {
     .unload = handle_window_unload,
   });
-  window_stack_push(s_window, true);
+  window_stack_push(s_window, false);
 }
 
 void hide_window(void) {
   Window* s_window = get_window();
-  window_stack_remove(s_window, true);
+  window_stack_remove(s_window, false);
 }
 
-//=======================ENDWINDOW=====================//
+void restore_window_message(void* stuff);
+void main_window_message(char* message){
+  set_text_title(message);
+  app_timer_register(5000, restore_window_message, NULL);
+}
+void restore_window_message(void* stuff){
+  char* cleanweather = "CleanWeather";
+  set_text_title(cleanweather);
+}

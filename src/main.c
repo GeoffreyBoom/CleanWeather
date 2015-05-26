@@ -12,7 +12,7 @@ void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_messag
       app_timer_register(1000, weather_callback, NULL);
       break;
     case APP_MSG_SEND_REJECTED: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_SEND_REJECTED");break;
-    case APP_MSG_NOT_CONNECTED: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_NOT_CONNECTED");break;
+    case APP_MSG_NOT_CONNECTED: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_NOT_CONNECTED");main_window_message("not connected!"); break;
     case APP_MSG_APP_NOT_RUNNING: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_APP_NOT_RUNNING");break;
     case APP_MSG_INVALID_ARGS: APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_INVALID_ARGS");break;
     case APP_MSG_BUSY:APP_LOG(APP_LOG_LEVEL_ERROR, "APP_MSG_BUSY");break;
@@ -29,19 +29,19 @@ void sync_error_handler(DictionaryResult dict_error, AppMessageResult app_messag
 
 void request_weather(void* data){
   
-  printf("dictionary\n");
+  if(debug_mode){printf("dictionary\n");}
 
   DictionaryIterator *iter;
   
-  printf("app_message\n");
+  if(debug_mode){printf("app_message\n");}
 	
   app_message_outbox_begin(&iter);
   
-  printf("dict_write\n");
+  if(debug_mode){printf("dict_write\n");}
   
   dict_write_end(iter);
   
-  printf("app_message_send\n");
+  if(debug_mode){printf("app_message_send\n");}
   
   app_message_outbox_send();
   
@@ -79,11 +79,11 @@ void start_weather_timer(void* data){
   }
   int weather_time = get_weather_time();
   if(weather_time != 0){
-    printf("weather time was not 0");
-    timer = app_timer_register(1000*60*10, start_weather_timer, NULL);
+    if(debug_mode){printf("weather time was not 0");}
+    timer = app_timer_register(1000*60*weather_time, start_weather_timer, NULL);
   }
   else{
-    printf("weather time was 0");
+    if(debug_mode){printf("weather time was 0");}
     timer = app_timer_register(1000*60*10, start_weather_timer, NULL);
   }
 }
@@ -111,7 +111,7 @@ void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tupl
       set_text_condition(s_condition_buffer);
       break;
     case WEATHER_REQUEST_KEY:
-      printf("%i",(int)new_tuple->value->int32);
+      if(debug_mode){printf("%i",(int)new_tuple->value->int32);}
       if((int)new_tuple->value->int32){
         weather_buffer->time = time(NULL);
       }
@@ -122,33 +122,35 @@ void sync_changed_handler(const uint32_t key, const Tuple *new_tuple, const Tupl
 }
 
 void forecast_sync_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tupple, void *context){
-  static char for_1[32];
-  static char for_2[32];
-  static char for_3[32];
-  static char for_4[32];
-    Weather* weather_buffer = get_weather_buffer();
+  static char for_1[15];
+  static char for_2[15];
+  static char for_3[15];
+  static char for_4[15];
+  Weather* weather_buffer = get_weather_buffer();
   switch(key){
     case FORECAST_KEY_1:
       snprintf(for_1, sizeof(for_1), "%s", (char*)new_tuple->value->cstring);
       strncpy(weather_buffer->forecast_1, for_1, sizeof(for_1));
       set_text_forecast_1(weather_buffer->forecast_1);
+      if(debug_mode){printf("%s", weather_buffer->forecast_1);}
       break;
     case FORECAST_KEY_2:
       snprintf(for_2, sizeof(for_2), "%s", (char*)new_tuple->value->cstring);
       strncpy(weather_buffer->forecast_2, for_2, sizeof(for_2));
       set_text_forecast_2(weather_buffer->forecast_2);
+      if(debug_mode){printf("%s", weather_buffer->forecast_2);}
       break;
     case FORECAST_KEY_3:
       snprintf(for_3, sizeof(for_3), "%s", (char*)new_tuple->value->cstring);
       strncpy(weather_buffer->forecast_3, for_3, sizeof(for_3));
       set_text_forecast_3(weather_buffer->forecast_3);
-      printf("%s", weather_buffer->forecast_3);
+      if(debug_mode){printf("%s", weather_buffer->forecast_3);}
       break;
     case FORECAST_KEY_4:
       snprintf(for_4, sizeof(for_4), "%s", (char*)new_tuple->value->cstring);
       strncpy(weather_buffer->forecast_4, for_4, sizeof(for_4));
       set_text_forecast_4(weather_buffer->forecast_4);
-      printf("forecast 4:%s", weather_buffer->forecast_4);
+      if(debug_mode){printf("forecast 4:%s", weather_buffer->forecast_4);}
       break;
   }
   persist_write_data(WEATHER_DATA_LOCATION, weather_buffer, sizeof(struct Weather));
@@ -157,7 +159,6 @@ void forecast_sync_handler(const uint32_t key, const Tuple *new_tuple, const Tup
 void configuration_sync_handler(const uint32_t key, const Tuple *new_tuple, const Tuple *old_tuple, void *context){
   printf("starting configuration sync handler\n");
   switch(key){
-    //printf("key: %i", (int)key);
     case LIGHT_TIME_KEY:
       set_light_time((int)new_tuple->value->int32);
       break;
@@ -165,6 +166,19 @@ void configuration_sync_handler(const uint32_t key, const Tuple *new_tuple, cons
       set_weather_time((int)new_tuple->value->int32);
       printf("%i", get_weather_time());
       break;
+  }
+}
+
+void delta_t_bluetooth_handler(bool connected){
+  if(connected){
+    main_window_message("running delta_t");
+    time_t temp = (time(NULL));
+    Weather weather_buffer = *get_weather_buffer();
+    long deltat = (temp - weather_buffer.time)/60;
+    if(deltat >= 10){
+      weather_callback(NULL);
+      app_timer_register(5000, weather_callback, NULL);
+    }
   }
 }
 
@@ -193,31 +207,40 @@ void test_deinit(void* nothing, int none){
   hide_forecast_window();
 }
 
+
+
 int main(void){
+  printf("%i", sizeof(Weather));
+  
+  set_version();
+  
   //subscribe to appsync handler
   multi_window_app_sync_service_subscribe(sync_changed_handler);
   multi_window_app_sync_service_subscribe(forecast_sync_handler);
   multi_window_app_sync_service_subscribe(configuration_sync_handler);
+  multi_window_bluetooth_connection_service_subscribe(delta_t_bluetooth_handler);
   
   // Begin App Sync
   setup_app_sync();  
   // Start Weather Updating
   start_weather_timer(NULL);
+  SubWindow* main_window = sub_window_create(main_init, main_de_init,NULL, NULL, NULL);
+  SubWindow* forecast = sub_window_create(test_init, test_deinit, NULL, NULL, get_forecast_layer);
+  SubWindow* weather = sub_window_create(weather_init, weather_deinit, NULL, NULL, get_weather_layer);
+  multi_window_set_main_window(main_window);
+  multi_window_add_sub_window(weather);
+  multi_window_add_sub_window(forecast);
   
-  multi_window_set_main_window(sub_window_create(main_init, main_de_init,NULL, NULL, NULL));
-  multi_window_add_sub_window(sub_window_create(weather_init, weather_deinit, NULL, NULL, NULL));
-  multi_window_add_sub_window(sub_window_create(test_init, test_deinit, NULL, NULL, get_forecast_layer));
-
+  //multi_window_remove_sub_window(weather);
+  //multi_window_remove_sub_window(forecast);
+  
   multi_window_display_initial();
+  
   multi_window_shake_for_next(true);
-  /*
-  */
-  printf("free: %i", (int)heap_bytes_free());
-  printf("used: %i", (int)heap_bytes_used());
+  
   app_event_loop();
   
   // Finish using AppSync
   multi_window_app_sync_deinit(&s_sync);
   multi_window_app_sync_service_unsubscribe(sync_changed_handler);
-  //sub_window_de_display(sequence->sub_window_array[sequence->current_window]);
 }

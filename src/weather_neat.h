@@ -1,6 +1,6 @@
 #pragma once
 #include "shared.h"
-#include "window.h"
+#include "multi_window.h"
 
 void weather_neat_show_window(void);
 void weather_neat_hide_window(void);
@@ -21,4 +21,4 @@ void set_text_update_time(char*);
 
 void set_text_title(char* title);
 
-Weather* get_weather_buffer();
+Layer* get_weather_layer();
